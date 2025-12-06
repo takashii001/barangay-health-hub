@@ -19,6 +19,7 @@ import ResidentHealth from "./pages/ResidentHealth";
 import ResidentPermits from "./pages/ResidentPermits";
 import ResidentComplaints from "./pages/ResidentComplaints";
 import ResidentRequest from "./pages/ResidentRequest";
+import ResidentQRCode from "./pages/ResidentQRCode";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ function AppRoutes() {
         <Route path="/resident/permits" element={<ResidentPermits />} />
         <Route path="/resident/complaints" element={<ResidentComplaints />} />
         <Route path="/resident/request" element={<ResidentRequest />} />
+        <Route path="/resident/qrcode" element={<ResidentQRCode />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

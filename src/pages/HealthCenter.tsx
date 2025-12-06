@@ -22,7 +22,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -31,6 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { QRScanner } from '@/components/features/QRScanner';
+import { AnimatedChart } from '@/components/charts/AnimatedChart';
 import {
   Search,
   Plus,
@@ -42,6 +43,7 @@ import {
   Stethoscope,
   ChevronLeft,
   ChevronRight,
+  QrCode,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -132,10 +134,29 @@ const MEDICINES = [
   { id: 'M005', name: 'Metformin 500mg', stock: 0, unit: 'tablets', status: 'Out of Stock' },
 ];
 
+const CONSULTATION_TREND_DATA = [
+  { name: 'Mon', consultations: 12 },
+  { name: 'Tue', consultations: 18 },
+  { name: 'Wed', consultations: 15 },
+  { name: 'Thu', consultations: 22 },
+  { name: 'Fri', consultations: 19 },
+  { name: 'Sat', consultations: 8 },
+  { name: 'Sun', consultations: 4 },
+];
+
+const DIAGNOSIS_DISTRIBUTION_DATA = [
+  { name: 'Respiratory', value: 35 },
+  { name: 'Hypertension', value: 25 },
+  { name: 'Diabetes', value: 15 },
+  { name: 'Skin Conditions', value: 15 },
+  { name: 'Other', value: 10 },
+];
+
 export default function HealthCenter() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const isReadOnly = user?.role === 'captain';
   const canEdit = user?.role === 'bhw' || user?.role === 'clerk' || user?.role === 'sysadmin';
@@ -144,18 +165,65 @@ export default function HealthCenter() {
     toast({
       title: 'Patient Added',
       description: 'New patient record has been created successfully.',
+      className: 'bg-green-600 text-white border-green-700',
     });
     setIsAddDialogOpen(false);
   };
 
+  const handleQRScan = (data: string) => {
+    setShowScanner(false);
+    toast({
+      title: 'Patient Found',
+      description: `Loading records for: ${data}`,
+      className: 'bg-green-600 text-white border-green-700',
+    });
+  };
+
   return (
     <div className="animate-fade-in">
-      <div className="page-header">
-        <h1 className="page-title">Health Center Services</h1>
-        <p className="page-description">
-          Manage patient records, consultations, and medicine inventory
-          {isReadOnly && ' (View Only Mode)'}
-        </p>
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="page-title">Health Center Services</h1>
+          <p className="page-description">
+            Manage patient records, consultations, and medicine inventory
+            {isReadOnly && ' (View Only Mode)'}
+          </p>
+        </div>
+        {canEdit && (
+          <Dialog open={showScanner} onOpenChange={setShowScanner}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <QrCode className="w-4 h-4" />
+                Scan Patient QR
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Scan Patient QR Code</DialogTitle>
+              </DialogHeader>
+              <QRScanner onScan={handleQRScan} type="resident" />
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <AnimatedChart
+          title="Weekly Consultations"
+          description="Daily consultation count this week"
+          data={CONSULTATION_TREND_DATA}
+          type="bar"
+          dataKeys={['consultations']}
+          colors={['hsl(var(--primary))']}
+        />
+        <AnimatedChart
+          title="Diagnosis Distribution"
+          description="Common diagnoses this month"
+          data={DIAGNOSIS_DISTRIBUTION_DATA}
+          type="pie"
+          dataKeys={['value']}
+        />
       </div>
 
       <Tabs defaultValue="patients" className="space-y-4">
@@ -176,7 +244,7 @@ export default function HealthCenter() {
 
         {/* Patients Tab */}
         <TabsContent value="patients">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -270,8 +338,12 @@ export default function HealthCenter() {
                       (p) =>
                         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         p.id.toLowerCase().includes(searchTerm.toLowerCase())
-                    ).map((patient) => (
-                      <TableRow key={patient.id}>
+                    ).map((patient, index) => (
+                      <TableRow 
+                        key={patient.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{patient.id}</TableCell>
                         <TableCell>{patient.name}</TableCell>
                         <TableCell>{patient.age}</TableCell>
@@ -328,7 +400,7 @@ export default function HealthCenter() {
 
         {/* Consultations Tab */}
         <TabsContent value="consultations">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -361,8 +433,12 @@ export default function HealthCenter() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {CONSULTATIONS.map((consultation) => (
-                      <TableRow key={consultation.id}>
+                    {CONSULTATIONS.map((consultation, index) => (
+                      <TableRow 
+                        key={consultation.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{consultation.id}</TableCell>
                         <TableCell>{consultation.patientName}</TableCell>
                         <TableCell>{consultation.date}</TableCell>
@@ -386,7 +462,7 @@ export default function HealthCenter() {
 
         {/* Inventory Tab */}
         <TabsContent value="inventory">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -417,8 +493,12 @@ export default function HealthCenter() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {MEDICINES.map((medicine) => (
-                      <TableRow key={medicine.id}>
+                    {MEDICINES.map((medicine, index) => (
+                      <TableRow 
+                        key={medicine.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{medicine.id}</TableCell>
                         <TableCell>{medicine.name}</TableCell>
                         <TableCell>{medicine.stock}</TableCell>

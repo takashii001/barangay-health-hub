@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { AnimatedChart } from '@/components/charts/AnimatedChart';
+import { HealthIndexMeter } from '@/components/charts/HealthIndexMeter';
+import { BarangayHealthMap } from '@/components/maps/BarangayHealthMap';
+import { ReportGenerator } from '@/components/features/ReportGenerator';
 import {
   Activity,
   TrendingUp,
@@ -11,7 +16,15 @@ import {
   ThermometerSun,
   Droplets,
   Bug,
+  Map,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 const OUTBREAK_ALERTS = [
   {
@@ -41,8 +54,24 @@ const WEEKLY_STATS = [
   { label: 'Diarrhea Cases', value: 8, change: '+12%', icon: Droplets },
 ];
 
+const DISEASE_TREND_DATA = [
+  { name: 'Week 1', Dengue: 2, Respiratory: 18, Diarrhea: 5 },
+  { name: 'Week 2', Dengue: 3, Respiratory: 22, Diarrhea: 6 },
+  { name: 'Week 3', Dengue: 4, Respiratory: 20, Diarrhea: 8 },
+  { name: 'Week 4', Dengue: 5, Respiratory: 23, Diarrhea: 8 },
+];
+
+const ZONE_DISTRIBUTION_DATA = [
+  { name: 'Zone 1', cases: 15 },
+  { name: 'Zone 2', cases: 22 },
+  { name: 'Zone 3', cases: 8 },
+  { name: 'Zone 4', cases: 3 },
+];
+
 export default function Surveillance() {
   const { user } = useAuth();
+  const [showMap, setShowMap] = useState(false);
+  const [showReportGenerator, setShowReportGenerator] = useState(false);
 
   // Only certain roles can access surveillance
   const hasAccess = ['clerk', 'captain', 'sysadmin'].includes(user?.role || '');
@@ -74,10 +103,19 @@ export default function Surveillance() {
         </p>
       </div>
 
+      {/* Health Index Meter */}
+      <div className="mb-6">
+        <HealthIndexMeter />
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {WEEKLY_STATS.map((stat) => (
-          <Card key={stat.label} className="card-hover">
+        {WEEKLY_STATS.map((stat, index) => (
+          <Card 
+            key={stat.label} 
+            className="card-hover animate-scale-in"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -102,7 +140,7 @@ export default function Surveillance() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Outbreak Alerts */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '100ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-status-warning" />
@@ -112,14 +150,15 @@ export default function Surveillance() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {OUTBREAK_ALERTS.map((alert) => (
+              {OUTBREAK_ALERTS.map((alert, index) => (
                 <div
                   key={alert.id}
-                  className={`p-4 rounded-lg border ${
+                  className={`p-4 rounded-lg border animate-fade-in ${
                     alert.severity === 'Moderate'
                       ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
                       : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                   }`}
+                  style={{ animationDelay: `${(index + 1) * 150}ms` }}
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -149,12 +188,27 @@ export default function Surveillance() {
         </Card>
 
         {/* Quick Actions */}
-        <Card>
+        <Card className="animate-slide-in" style={{ animationDelay: '200ms' }}>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Surveillance tools and reports</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            <Dialog open={showMap} onOpenChange={setShowMap}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full justify-start gap-2">
+                  <Map className="w-4 h-4" />
+                  View Barangay Health Map
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Interactive Barangay Health Map</DialogTitle>
+                </DialogHeader>
+                <BarangayHealthMap />
+              </DialogContent>
+            </Dialog>
+            
             <Button variant="outline" className="w-full justify-start gap-2">
               <TrendingUp className="w-4 h-4" />
               View Trend Charts
@@ -163,10 +217,22 @@ export default function Surveillance() {
               <MapPin className="w-4 h-4" />
               Disease Heatmap
             </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <FileText className="w-4 h-4" />
-              Generate Report
-            </Button>
+            
+            <Dialog open={showReportGenerator} onOpenChange={setShowReportGenerator}>
+              <DialogTrigger asChild>
+                <Button variant="default" className="w-full justify-start gap-2 bg-primary">
+                  <FileText className="w-4 h-4" />
+                  Generate Monthly FHSIS Report
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Report Generator</DialogTitle>
+                </DialogHeader>
+                <ReportGenerator />
+              </DialogContent>
+            </Dialog>
+            
             {user?.role !== 'captain' && (
               <Button variant="outline" className="w-full justify-start gap-2">
                 <AlertTriangle className="w-4 h-4" />
@@ -176,44 +242,28 @@ export default function Surveillance() {
           </CardContent>
         </Card>
 
-        {/* Trend Chart Placeholder */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Disease Trend (Last 30 Days)
-            </CardTitle>
-            <CardDescription>Weekly case counts by disease type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 flex items-center justify-center bg-muted/50 rounded-lg border-2 border-dashed">
-              <div className="text-center text-muted-foreground">
-                <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Chart visualization placeholder</p>
-                <p className="text-xs">(Mock data for prototype)</p>
-              </div>
-            </div>
-          </CardContent>
+        {/* Disease Trend Chart */}
+        <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '300ms' }}>
+          <AnimatedChart
+            title="Disease Trend (Last 30 Days)"
+            description="Weekly case counts by disease type"
+            data={DISEASE_TREND_DATA}
+            type="area"
+            dataKeys={['Dengue', 'Respiratory', 'Diarrhea']}
+            colors={['hsl(var(--destructive))', 'hsl(var(--primary))', 'hsl(var(--chart-3))']}
+          />
         </Card>
 
-        {/* Heatmap Placeholder */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-primary" />
-              Zone Heatmap
-            </CardTitle>
-            <CardDescription>Disease distribution by zone</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-48 flex items-center justify-center bg-muted/50 rounded-lg border-2 border-dashed">
-              <div className="text-center text-muted-foreground">
-                <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Heatmap placeholder</p>
-                <p className="text-xs">(Mock data)</p>
-              </div>
-            </div>
-          </CardContent>
+        {/* Zone Distribution */}
+        <Card className="animate-slide-in" style={{ animationDelay: '400ms' }}>
+          <AnimatedChart
+            title="Cases by Zone"
+            description="Distribution across barangay zones"
+            data={ZONE_DISTRIBUTION_DATA}
+            type="bar"
+            dataKeys={['cases']}
+            colors={['hsl(var(--primary))']}
+          />
         </Card>
       </div>
     </div>

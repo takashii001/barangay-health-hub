@@ -14,6 +14,16 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { AnimatedChart } from '@/components/charts/AnimatedChart';
+import { OperationTimbangScheduler } from '@/components/features/OperationTimbangScheduler';
+import { QRScanner } from '@/components/features/QRScanner';
+import {
   Search,
   Plus,
   Eye,
@@ -22,7 +32,10 @@ import {
   Baby,
   MessageSquare,
   Bell,
+  Calendar,
+  QrCode,
 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const VACCINE_RECORDS = [
   {
@@ -106,21 +119,101 @@ const SMS_REMINDERS = [
   },
 ];
 
+const VACCINATION_TREND_DATA = [
+  { name: 'Jan', vaccinations: 42 },
+  { name: 'Feb', vaccinations: 38 },
+  { name: 'Mar', vaccinations: 55 },
+  { name: 'Apr', vaccinations: 47 },
+  { name: 'May', vaccinations: 52 },
+  { name: 'Jun', vaccinations: 48 },
+];
+
+const NUTRITION_STATUS_DATA = [
+  { name: 'Normal', value: 85 },
+  { name: 'Underweight', value: 10 },
+  { name: 'Overweight', value: 5 },
+];
+
 export default function Immunization() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const isReadOnly = user?.role === 'captain';
   const canEdit = user?.role === 'bhw' || user?.role === 'clerk' || user?.role === 'sysadmin';
 
+  const handleQRScan = (data: string) => {
+    setShowScanner(false);
+    toast({
+      title: 'Resident Found',
+      description: `Loading health records for: ${data}`,
+      className: 'bg-green-600 text-white border-green-700',
+    });
+  };
+
   return (
     <div className="animate-fade-in">
-      <div className="page-header">
-        <h1 className="page-title">Immunization & Nutrition</h1>
-        <p className="page-description">
-          Track vaccinations, nutrition status, and health reminders
-          {isReadOnly && ' (View Only Mode)'}
-        </p>
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="page-title">Immunization & Nutrition</h1>
+          <p className="page-description">
+            Track vaccinations, nutrition status, and health reminders
+            {isReadOnly && ' (View Only Mode)'}
+          </p>
+        </div>
+        {canEdit && (
+          <div className="flex gap-2">
+            <Dialog open={showScanner} onOpenChange={setShowScanner}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <QrCode className="w-4 h-4" />
+                  Scan Resident QR
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Scan Resident QR Code</DialogTitle>
+                </DialogHeader>
+                <QRScanner onScan={handleQRScan} type="resident" />
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={showScheduler} onOpenChange={setShowScheduler}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 bg-primary">
+                  <Calendar className="w-4 h-4" />
+                  Operation Timbang Scheduler
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Auto-Schedule Operation Timbang</DialogTitle>
+                </DialogHeader>
+                <OperationTimbangScheduler />
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <AnimatedChart
+          title="Vaccination Trend"
+          description="Monthly vaccinations administered"
+          data={VACCINATION_TREND_DATA}
+          type="area"
+          dataKeys={['vaccinations']}
+          colors={['hsl(var(--primary))']}
+        />
+        <AnimatedChart
+          title="Nutrition Status Distribution"
+          description="Current nutrition assessment results"
+          data={NUTRITION_STATUS_DATA}
+          type="pie"
+          dataKeys={['value']}
+        />
       </div>
 
       <Tabs defaultValue="vaccinations" className="space-y-4">
@@ -141,7 +234,7 @@ export default function Immunization() {
 
         {/* Vaccinations Tab */}
         <TabsContent value="vaccinations">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -186,8 +279,16 @@ export default function Immunization() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {VACCINE_RECORDS.map((record) => (
-                      <TableRow key={record.id}>
+                    {VACCINE_RECORDS.filter(
+                      (r) =>
+                        r.childName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        r.id.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map((record, index) => (
+                      <TableRow 
+                        key={record.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{record.id}</TableCell>
                         <TableCell>{record.childName}</TableCell>
                         <TableCell>{record.age}</TableCell>
@@ -224,7 +325,7 @@ export default function Immunization() {
 
         {/* Nutrition Tab */}
         <TabsContent value="nutrition">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -257,8 +358,12 @@ export default function Immunization() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {NUTRITION_RECORDS.map((record) => (
-                      <TableRow key={record.id}>
+                    {NUTRITION_RECORDS.map((record, index) => (
+                      <TableRow 
+                        key={record.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{record.id}</TableCell>
                         <TableCell>{record.childName}</TableCell>
                         <TableCell>{record.age}</TableCell>
@@ -294,7 +399,7 @@ export default function Immunization() {
 
         {/* Reminders Tab */}
         <TabsContent value="reminders">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -324,8 +429,12 @@ export default function Immunization() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {SMS_REMINDERS.map((reminder) => (
-                      <TableRow key={reminder.id}>
+                    {SMS_REMINDERS.map((reminder, index) => (
+                      <TableRow 
+                        key={reminder.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{reminder.recipient}</TableCell>
                         <TableCell>{reminder.phone}</TableCell>
                         <TableCell className="max-w-xs truncate">{reminder.message}</TableCell>

@@ -14,6 +14,15 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { QRScanner } from '@/components/features/QRScanner';
+import { InspectionChecklist } from '@/components/features/InspectionChecklist';
+import {
   Search,
   Plus,
   Eye,
@@ -22,7 +31,9 @@ import {
   Building2,
   AlertCircle,
   CheckCircle,
+  QrCode,
 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const PERMITS = [
   {
@@ -91,9 +102,27 @@ const VIOLATIONS = [
 export default function Sanitation() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
+  const [showInspection, setShowInspection] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
 
   const isReadOnly = user?.role === 'captain';
   const canEdit = user?.role === 'bsi' || user?.role === 'clerk' || user?.role === 'sysadmin';
+  const canInspect = user?.role === 'bsi' || user?.role === 'sysadmin';
+
+  const handleQRScan = (data: string) => {
+    setShowScanner(false);
+    toast({
+      title: 'QR Code Scanned',
+      description: `Business permit found: ${data}`,
+      className: 'bg-green-600 text-white border-green-700',
+    });
+  };
+
+  const handleStartInspection = (businessName: string) => {
+    setSelectedBusiness(businessName);
+    setShowInspection(true);
+  };
 
   return (
     <div className="animate-fade-in">
@@ -106,24 +135,43 @@ export default function Sanitation() {
       </div>
 
       <Tabs defaultValue="permits" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="permits" className="gap-2">
-            <Building2 className="w-4 h-4" />
-            Permits
-          </TabsTrigger>
-          <TabsTrigger value="inspections" className="gap-2">
-            <ClipboardCheck className="w-4 h-4" />
-            Inspections
-          </TabsTrigger>
-          <TabsTrigger value="violations" className="gap-2">
-            <AlertCircle className="w-4 h-4" />
-            Violations
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsTrigger value="permits" className="gap-2">
+              <Building2 className="w-4 h-4" />
+              Permits
+            </TabsTrigger>
+            <TabsTrigger value="inspections" className="gap-2">
+              <ClipboardCheck className="w-4 h-4" />
+              Inspections
+            </TabsTrigger>
+            <TabsTrigger value="violations" className="gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Violations
+            </TabsTrigger>
+          </TabsList>
+
+          {canInspect && (
+            <Dialog open={showScanner} onOpenChange={setShowScanner}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <QrCode className="w-4 h-4" />
+                  Scan Business QR
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Scan Business Permit QR Code</DialogTitle>
+                </DialogHeader>
+                <QRScanner onScan={handleQRScan} type="business" />
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
 
         {/* Permits Tab */}
         <TabsContent value="permits">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -167,8 +215,16 @@ export default function Sanitation() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {PERMITS.map((permit) => (
-                      <TableRow key={permit.id}>
+                    {PERMITS.filter(
+                      (p) =>
+                        p.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        p.id.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map((permit, index) => (
+                      <TableRow 
+                        key={permit.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{permit.id}</TableCell>
                         <TableCell>{permit.businessName}</TableCell>
                         <TableCell>{permit.owner}</TableCell>
@@ -192,6 +248,15 @@ export default function Sanitation() {
                             <Button variant="ghost" size="icon">
                               <Eye className="w-4 h-4" />
                             </Button>
+                            {canInspect && permit.status === 'Pending Inspection' && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleStartInspection(permit.businessName)}
+                              >
+                                <ClipboardCheck className="w-4 h-4" />
+                              </Button>
+                            )}
                             {canEdit && (
                               <Button variant="ghost" size="icon">
                                 <Edit className="w-4 h-4" />
@@ -210,7 +275,7 @@ export default function Sanitation() {
 
         {/* Inspections Tab */}
         <TabsContent value="inspections">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -219,11 +284,35 @@ export default function Sanitation() {
                     Sanitation inspection history and results
                   </CardDescription>
                 </div>
-                {canEdit && (
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Inspection
-                  </Button>
+                {canInspect && (
+                  <Dialog open={showInspection} onOpenChange={setShowInspection}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Inspection
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Digital Inspection Checklist
+                          {selectedBusiness && ` - ${selectedBusiness}`}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <InspectionChecklist 
+                        businessName={selectedBusiness || 'New Business'} 
+                        onComplete={() => {
+                          setShowInspection(false);
+                          setSelectedBusiness(null);
+                          toast({
+                            title: 'Inspection Submitted',
+                            description: 'The inspection report has been saved successfully.',
+                            className: 'bg-green-600 text-white border-green-700',
+                          });
+                        }}
+                      />
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
             </CardHeader>
@@ -242,8 +331,12 @@ export default function Sanitation() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {INSPECTIONS.map((inspection) => (
-                      <TableRow key={inspection.id}>
+                    {INSPECTIONS.map((inspection, index) => (
+                      <TableRow 
+                        key={inspection.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{inspection.id}</TableCell>
                         <TableCell>{inspection.businessName}</TableCell>
                         <TableCell>{inspection.inspectionDate}</TableCell>
@@ -271,7 +364,7 @@ export default function Sanitation() {
 
         {/* Violations Tab */}
         <TabsContent value="violations">
-          <Card>
+          <Card className="animate-slide-in">
             <CardHeader>
               <CardTitle>Violations Report</CardTitle>
               <CardDescription>
@@ -294,8 +387,12 @@ export default function Sanitation() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {VIOLATIONS.map((violation) => (
-                      <TableRow key={violation.id}>
+                    {VIOLATIONS.map((violation, index) => (
+                      <TableRow 
+                        key={violation.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{violation.id}</TableCell>
                         <TableCell>{violation.businessName}</TableCell>
                         <TableCell>{violation.violationType}</TableCell>
