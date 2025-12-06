@@ -24,7 +24,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -57,8 +56,8 @@ export function Header({ onMenuClick }: HeaderProps) {
         </Button>
 
         <div className="hidden md:flex items-center gap-2">
-          <h1 className="font-display font-semibold text-foreground">
-            Health & Sanitation Management System
+          <h1 className="font-display font-extrabold text-foreground tracking-wide text-lg uppercase">
+            HEALTH & SANITATION MANAGEMENT SYSTEM
           </h1>
         </div>
       </div>
