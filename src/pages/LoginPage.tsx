@@ -61,8 +61,9 @@ export default function LoginPage() {
     try {
       await login('demo@barangay.gov.ph', 'demo123', role);
       toast({
-        title: 'Demo Login',
+        title: 'Demo Login Successful',
         description: `Logged in as ${ROLE_LABELS[role]}`,
+        className: 'bg-green-600 text-white border-green-700',
       });
       
       if (role === 'resident') {

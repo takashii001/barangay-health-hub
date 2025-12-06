@@ -1,8 +1,9 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { ROLE_LABELS } from '@/types/auth';
 import { StatCard } from '@/components/ui/stat-card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnimatedChart } from '@/components/charts/AnimatedChart';
+import { HealthIndexMeter } from '@/components/charts/HealthIndexMeter';
 import {
   Users,
   Stethoscope,
@@ -28,10 +29,26 @@ const UPCOMING_SCHEDULES = [
   { id: 3, title: 'Nutrition Monitoring', date: 'Dec 7, 2025', location: 'Day Care Center' },
 ];
 
+const MONTHLY_CONSULTATIONS_DATA = [
+  { name: 'Week 1', consultations: 85, vaccinations: 42 },
+  { name: 'Week 2', consultations: 92, vaccinations: 38 },
+  { name: 'Week 3', consultations: 78, vaccinations: 55 },
+  { name: 'Week 4', consultations: 87, vaccinations: 21 },
+];
+
+const DISEASE_DISTRIBUTION_DATA = [
+  { name: 'Respiratory', value: 35 },
+  { name: 'Dengue', value: 15 },
+  { name: 'Diarrhea', value: 20 },
+  { name: 'Skin Conditions', value: 18 },
+  { name: 'Other', value: 12 },
+];
+
 export default function Dashboard() {
   const { user } = useAuth();
 
   const isReadOnly = user?.role === 'captain';
+  const showHealthIndex = ['captain', 'clerk', 'sysadmin'].includes(user?.role || '');
 
   return (
     <div className="animate-fade-in">
@@ -75,10 +92,36 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Health Index for Officials */}
+      {showHealthIndex && (
+        <div className="mb-6">
+          <HealthIndexMeter />
+        </div>
+      )}
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <AnimatedChart
+          title="Weekly Consultations & Vaccinations"
+          description="Health center activity trends"
+          data={MONTHLY_CONSULTATIONS_DATA}
+          type="bar"
+          dataKeys={['consultations', 'vaccinations']}
+          colors={['hsl(var(--primary))', 'hsl(var(--chart-2))']}
+        />
+        <AnimatedChart
+          title="Disease Distribution"
+          description="Current month breakdown"
+          data={DISEASE_DISTRIBUTION_DATA}
+          type="pie"
+          dataKeys={['value']}
+        />
+      </div>
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activities */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '100ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-primary" />
@@ -88,10 +131,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {RECENT_ACTIVITIES.map((activity) => (
+              {RECENT_ACTIVITIES.map((activity, index) => (
                 <div
                   key={activity.id}
-                  className="flex items-center justify-between py-3 border-b border-border last:border-0"
+                  className="flex items-center justify-between py-3 border-b border-border last:border-0 animate-fade-in"
+                  style={{ animationDelay: `${(index + 1) * 100}ms` }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-primary" />
@@ -110,7 +154,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Upcoming Schedules */}
-        <Card>
+        <Card className="animate-slide-in" style={{ animationDelay: '200ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
@@ -120,10 +164,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {UPCOMING_SCHEDULES.map((schedule) => (
+              {UPCOMING_SCHEDULES.map((schedule, index) => (
                 <div
                   key={schedule.id}
-                  className="p-3 rounded-lg bg-muted/50 border border-border"
+                  className="p-3 rounded-lg bg-muted/50 border border-border animate-scale-in"
+                  style={{ animationDelay: `${(index + 1) * 150}ms` }}
                 >
                   <p className="font-medium text-sm">{schedule.title}</p>
                   <div className="flex items-center gap-2 mt-1">
@@ -138,7 +183,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Health Alerts */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '300ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-status-warning" />
@@ -148,7 +193,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+              <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 animate-fade-in" style={{ animationDelay: '400ms' }}>
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <div>
@@ -168,7 +213,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 animate-fade-in" style={{ animationDelay: '500ms' }}>
                 <div className="flex items-start gap-3">
                   <Syringe className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
@@ -192,7 +237,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Quick Stats */}
-        <Card>
+        <Card className="animate-slide-in" style={{ animationDelay: '400ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
@@ -207,8 +252,12 @@ export default function Dashboard() {
                 { label: 'Permits Issued', value: '28', trend: '+15%' },
                 { label: 'Vaccinations', value: '156', trend: '-5%' },
                 { label: 'Complaints Resolved', value: '12', trend: '+20%' },
-              ].map((stat) => (
-                <div key={stat.label} className="flex items-center justify-between">
+              ].map((stat, index) => (
+                <div 
+                  key={stat.label} 
+                  className="flex items-center justify-between animate-fade-in"
+                  style={{ animationDelay: `${(index + 1) * 100 + 400}ms` }}
+                >
                   <span className="text-sm text-muted-foreground">{stat.label}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{stat.value}</span>
