@@ -43,21 +43,34 @@ export function Header({ onMenuClick }: HeaderProps) {
   if (!user) return null;
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-card border-b border-border px-4 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30 h-16 bg-card border-b border-border px-2 sm:px-4 flex items-center justify-between gap-2 sm:gap-4">
       {/* Left section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="lg:hidden shrink-0"
           onClick={onMenuClick}
         >
           <Menu className="w-5 h-5" />
         </Button>
 
-        <div className="hidden md:flex items-center gap-2">
-          <h1 className="font-display font-extrabold text-foreground tracking-wide text-lg uppercase">
+        {/* Full title on large screens */}
+        <div className="hidden lg:flex items-center gap-2">
+          <h1 className="font-display font-extrabold text-primary tracking-wide text-lg uppercase whitespace-nowrap">
             HEALTH & SANITATION MANAGEMENT SYSTEM
+          </h1>
+        </div>
+        {/* Medium screens - shorter title */}
+        <div className="hidden md:flex lg:hidden items-center gap-2">
+          <h1 className="font-display font-extrabold text-primary tracking-wide text-base uppercase whitespace-nowrap">
+            HSM SYSTEM
+          </h1>
+        </div>
+        {/* Mobile - very short */}
+        <div className="flex md:hidden items-center gap-2">
+          <h1 className="font-display font-extrabold text-primary tracking-wide text-sm uppercase whitespace-nowrap">
+            HSM
           </h1>
         </div>
       </div>

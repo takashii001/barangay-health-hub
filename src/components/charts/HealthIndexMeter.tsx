@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface HealthIndexMeterProps {
-  score: number;
+  score?: number;
   maxScore?: number;
   className?: string;
 }
 
-export function HealthIndexMeter({ score, maxScore = 100, className }: HealthIndexMeterProps) {
+export function HealthIndexMeter({ score = 82, maxScore = 100, className }: HealthIndexMeterProps) {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
-    const duration = 1500;
+    const duration = 2500;
     const steps = 60;
     const increment = score / steps;
     let current = 0;

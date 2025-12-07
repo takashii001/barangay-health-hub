@@ -17,11 +17,15 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ChartProps {
   data: any[];
   type: 'line' | 'area' | 'bar' | 'pie';
+  title?: string;
+  description?: string;
   dataKey?: string;
+  dataKeys?: string[];
   xAxisKey?: string;
   colors?: string[];
   className?: string;
@@ -29,6 +33,7 @@ interface ChartProps {
   showGrid?: boolean;
   showLegend?: boolean;
   animate?: boolean;
+  animationDuration?: number;
 }
 
 const DEFAULT_COLORS = [
@@ -43,7 +48,10 @@ const DEFAULT_COLORS = [
 export function AnimatedChart({
   data,
   type,
+  title,
+  description,
   dataKey = 'value',
+  dataKeys,
   xAxisKey = 'name',
   colors = DEFAULT_COLORS,
   className,
@@ -51,6 +59,7 @@ export function AnimatedChart({
   showGrid = true,
   showLegend = true,
   animate = true,
+  animationDuration = 2500,
 }: ChartProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -58,6 +67,9 @@ export function AnimatedChart({
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Get keys to render - use dataKeys if provided, otherwise auto-detect from data
+  const keysToRender = dataKeys || Object.keys(data[0] || {}).filter((key) => key !== xAxisKey);
 
   const renderChart = () => {
     switch (type) {
@@ -75,20 +87,18 @@ export function AnimatedChart({
               }}
             />
             {showLegend && <Legend />}
-            {Object.keys(data[0] || {})
-              .filter((key) => key !== xAxisKey)
-              .map((key, index) => (
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={colors[index % colors.length]}
-                  strokeWidth={2}
-                  dot={{ fill: colors[index % colors.length], strokeWidth: 2 }}
-                  animationDuration={animate ? 1500 : 0}
-                  animationBegin={animate ? index * 200 : 0}
-                />
-              ))}
+            {keysToRender.map((key, index) => (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={colors[index % colors.length]}
+                strokeWidth={2}
+                dot={{ fill: colors[index % colors.length], strokeWidth: 2 }}
+                animationDuration={animate ? animationDuration : 0}
+                animationBegin={animate ? index * 300 : 0}
+              />
+            ))}
           </LineChart>
         );
 
@@ -106,20 +116,18 @@ export function AnimatedChart({
               }}
             />
             {showLegend && <Legend />}
-            {Object.keys(data[0] || {})
-              .filter((key) => key !== xAxisKey)
-              .map((key, index) => (
-                <Area
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={colors[index % colors.length]}
-                  fill={colors[index % colors.length]}
-                  fillOpacity={0.3}
-                  animationDuration={animate ? 1500 : 0}
-                  animationBegin={animate ? index * 200 : 0}
-                />
-              ))}
+            {keysToRender.map((key, index) => (
+              <Area
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={colors[index % colors.length]}
+                fill={colors[index % colors.length]}
+                fillOpacity={0.3}
+                animationDuration={animate ? animationDuration : 0}
+                animationBegin={animate ? index * 300 : 0}
+              />
+            ))}
           </AreaChart>
         );
 
@@ -137,18 +145,16 @@ export function AnimatedChart({
               }}
             />
             {showLegend && <Legend />}
-            {Object.keys(data[0] || {})
-              .filter((key) => key !== xAxisKey)
-              .map((key, index) => (
-                <Bar
-                  key={key}
-                  dataKey={key}
-                  fill={colors[index % colors.length]}
-                  radius={[4, 4, 0, 0]}
-                  animationDuration={animate ? 1500 : 0}
-                  animationBegin={animate ? index * 200 : 0}
-                />
-              ))}
+            {keysToRender.map((key, index) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={colors[index % colors.length]}
+                radius={[4, 4, 0, 0]}
+                animationDuration={animate ? animationDuration : 0}
+                animationBegin={animate ? index * 300 : 0}
+              />
+            ))}
           </BarChart>
         );
 
@@ -161,9 +167,9 @@ export function AnimatedChart({
               cy="50%"
               innerRadius={60}
               outerRadius={100}
-              dataKey={dataKey}
+              dataKey={dataKeys?.[0] || dataKey}
               nameKey={xAxisKey}
-              animationDuration={animate ? 1500 : 0}
+              animationDuration={animate ? animationDuration : 0}
               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
             >
               {data.map((entry, index) => (
@@ -186,12 +192,11 @@ export function AnimatedChart({
     }
   };
 
-  return (
+  const chartContent = (
     <div
       className={cn(
         'transition-all duration-700',
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
-        className
       )}
       style={{ height }}
     >
@@ -200,4 +205,20 @@ export function AnimatedChart({
       </ResponsiveContainer>
     </div>
   );
+
+  if (title) {
+    return (
+      <Card className={cn('animate-scale-in', className)}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </CardHeader>
+        <CardContent>
+          {chartContent}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return <div className={className}>{chartContent}</div>;
 }

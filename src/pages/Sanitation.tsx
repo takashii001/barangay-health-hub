@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { QRScanner } from '@/components/features/QRScanner';
+import { QRScanner, ScannedResult } from '@/components/features/QRScanner';
 import { InspectionChecklist } from '@/components/features/InspectionChecklist';
 import {
   Search,
@@ -110,11 +110,11 @@ export default function Sanitation() {
   const canEdit = user?.role === 'bsi' || user?.role === 'clerk' || user?.role === 'sysadmin';
   const canInspect = user?.role === 'bsi' || user?.role === 'sysadmin';
 
-  const handleQRScan = (data: string) => {
+  const handleQRScan = (result: ScannedResult) => {
     setShowScanner(false);
     toast({
       title: 'QR Code Scanned',
-      description: `Business permit found: ${data}`,
+      description: `Business permit found: ${result.name}`,
       className: 'bg-green-600 text-white border-green-700',
     });
   };

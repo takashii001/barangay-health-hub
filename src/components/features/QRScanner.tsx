@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { QrCode, Camera, Search, User, Building2, CheckCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-interface ScannedResult {
+export interface ScannedResult {
   id: string;
   name: string;
   type: 'resident' | 'business';
@@ -22,10 +22,11 @@ const MOCK_RESULTS: Record<string, ScannedResult> = {
 
 interface QRScannerProps {
   onScan?: (result: ScannedResult) => void;
+  type?: 'resident' | 'business';
   className?: string;
 }
 
-export function QRScanner({ onScan, className }: QRScannerProps) {
+export function QRScanner({ onScan, type = 'resident', className }: QRScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [manualId, setManualId] = useState('');
   const [scannedResult, setScannedResult] = useState<ScannedResult | null>(null);
