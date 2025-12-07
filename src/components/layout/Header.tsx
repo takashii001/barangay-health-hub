@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { ROLE_LABELS, ROLE_COLORS, UserRole } from '@/types/auth';
-import { cn } from '@/lib/utils';
+import { ROLE_LABELS } from '@/types/auth';
 import {
   Menu,
   Search,
@@ -12,7 +11,6 @@ import {
   User,
   LogOut,
   Settings,
-  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,10 +27,8 @@ interface HeaderProps {
   onMenuClick: () => void;
 }
 
-const ALL_ROLES: UserRole[] = ['resident', 'bhw', 'bsi', 'clerk', 'captain', 'sysadmin'];
-
 export function Header({ onMenuClick }: HeaderProps) {
-  const { user, logout, switchRole } = useAuth();
+  const { user, logout } = useAuth();
   const [isDark, setIsDark] = useState(false);
 
   const toggleTheme = () => {
@@ -89,36 +85,6 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       {/* Right section */}
       <div className="flex items-center gap-2">
-        {/* Role Switcher (Demo Only) */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="hidden md:flex gap-2">
-              <RotateCcw className="w-4 h-4" />
-              <span className="text-xs">Switch Role</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Demo: Switch User Role
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {ALL_ROLES.map((role) => (
-              <DropdownMenuItem
-                key={role}
-                onClick={() => switchRole(role)}
-                className={cn(
-                  'cursor-pointer',
-                  user.role === role && 'bg-primary/10'
-                )}
-              >
-                <span className={cn('px-2 py-0.5 rounded text-xs', ROLE_COLORS[role])}>
-                  {ROLE_LABELS[role]}
-                </span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5" />

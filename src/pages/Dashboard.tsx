@@ -37,11 +37,11 @@ const MONTHLY_CONSULTATIONS_DATA = [
 ];
 
 const DISEASE_DISTRIBUTION_DATA = [
-  { name: 'Respiratory', value: 35 },
-  { name: 'Dengue', value: 15 },
-  { name: 'Diarrhea', value: 20 },
-  { name: 'Skin Conditions', value: 18 },
-  { name: 'Other', value: 12 },
+  { name: 'Respiratory', value: 30 },
+  { name: 'Hypertension', value: 20 },
+  { name: 'Dengue', value: 18 },
+  { name: 'Influenza', value: 17 },
+  { name: 'Leptospirosis', value: 15 },
 ];
 
 export default function Dashboard() {

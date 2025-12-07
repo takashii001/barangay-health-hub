@@ -145,11 +145,11 @@ const CONSULTATION_TREND_DATA = [
 ];
 
 const DIAGNOSIS_DISTRIBUTION_DATA = [
-  { name: 'Respiratory', value: 35 },
-  { name: 'Hypertension', value: 25 },
-  { name: 'Diabetes', value: 15 },
-  { name: 'Skin Conditions', value: 15 },
-  { name: 'Other', value: 10 },
+  { name: 'Respiratory', value: 30 },
+  { name: 'Hypertension', value: 20 },
+  { name: 'Dengue', value: 18 },
+  { name: 'Influenza', value: 17 },
+  { name: 'Leptospirosis', value: 15 },
 ];
 
 export default function HealthCenter() {
