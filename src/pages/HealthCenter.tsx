@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { QRScanner } from '@/components/features/QRScanner';
+import { QRScanner, ScannedResult } from '@/components/features/QRScanner';
 import { AnimatedChart } from '@/components/charts/AnimatedChart';
 import {
   Search,
@@ -170,11 +170,11 @@ export default function HealthCenter() {
     setIsAddDialogOpen(false);
   };
 
-  const handleQRScan = (data: string) => {
+  const handleQRScan = (result: ScannedResult) => {
     setShowScanner(false);
     toast({
       title: 'Patient Found',
-      description: `Loading records for: ${data}`,
+      description: `Loading records for: ${result.name}`,
       className: 'bg-green-600 text-white border-green-700',
     });
   };

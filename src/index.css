@@ -110,15 +110,25 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    @apply break-words;
+  }
+
+  /* Prevent text overflow globally */
+  p, span, label, td, th {
+    @apply break-words;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
 }
 
@@ -176,11 +186,25 @@
   }
 
   .page-title {
-    @apply text-2xl font-bold tracking-tight text-foreground;
+    @apply text-xl sm:text-2xl font-bold tracking-tight text-foreground break-words;
   }
 
   .page-description {
-    @apply text-sm text-muted-foreground;
+    @apply text-xs sm:text-sm text-muted-foreground break-words;
+  }
+
+  /* Mobile responsive table container */
+  .table-responsive {
+    @apply w-full overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive {
+    @apply text-xs sm:text-sm md:text-base;
+  }
+
+  .truncate-responsive {
+    @apply truncate max-w-[120px] sm:max-w-[200px] md:max-w-xs;
   }
 }
 

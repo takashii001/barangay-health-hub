@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { AnimatedChart } from '@/components/charts/AnimatedChart';
 import { OperationTimbangScheduler } from '@/components/features/OperationTimbangScheduler';
-import { QRScanner } from '@/components/features/QRScanner';
+import { QRScanner, ScannedResult } from '@/components/features/QRScanner';
 import {
   Search,
   Plus,
@@ -143,11 +143,11 @@ export default function Immunization() {
   const isReadOnly = user?.role === 'captain';
   const canEdit = user?.role === 'bhw' || user?.role === 'clerk' || user?.role === 'sysadmin';
 
-  const handleQRScan = (data: string) => {
+  const handleQRScan = (result: ScannedResult) => {
     setShowScanner(false);
     toast({
       title: 'Resident Found',
-      description: `Loading health records for: ${data}`,
+      description: `Loading health records for: ${result.name}`,
       className: 'bg-green-600 text-white border-green-700',
     });
   };

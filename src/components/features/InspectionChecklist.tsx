@@ -32,12 +32,13 @@ const INITIAL_CHECKLIST: ChecklistItem[] = [
 
 interface InspectionChecklistProps {
   businessName: string;
-  businessId: string;
+  businessId?: string;
   onSubmit?: (checklist: ChecklistItem[]) => void;
+  onComplete?: () => void;
   className?: string;
 }
 
-export function InspectionChecklist({ businessName, businessId, onSubmit, className }: InspectionChecklistProps) {
+export function InspectionChecklist({ businessName, businessId = 'NEW', onSubmit, onComplete, className }: InspectionChecklistProps) {
   const [checklist, setChecklist] = useState<ChecklistItem[]>(INITIAL_CHECKLIST);
   const [notes, setNotes] = useState('');
 
@@ -71,6 +72,7 @@ export function InspectionChecklist({ businessName, businessId, onSubmit, classN
       description: 'The inspection report has been saved successfully',
     });
     onSubmit?.(checklist);
+    onComplete?.();
   };
 
   const compliantCount = checklist.filter(item => item.compliant === true).length;
