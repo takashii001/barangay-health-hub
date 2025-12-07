@@ -169,7 +169,11 @@ export function AnimatedChart({
               outerRadius={100}
               dataKey={dataKeys?.[0] || dataKey}
               nameKey={xAxisKey}
-              animationDuration={animate ? animationDuration : 0}
+              animationDuration={animate ? 3000 : 0}
+              animationBegin={0}
+              animationEasing="ease-out"
+              startAngle={90}
+              endAngle={-270}
               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
             >
               {data.map((entry, index) => (
