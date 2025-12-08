@@ -161,6 +161,19 @@ export function AnimatedChart({
       case 'pie':
         return (
           <PieChart>
+            <defs>
+              <style>
+                {`
+                  @keyframes pie-spin {
+                    0% { transform: rotate(0deg); transform-origin: center; }
+                    100% { transform: rotate(360deg); transform-origin: center; }
+                  }
+                  .pie-animate {
+                    animation: pie-spin 3s ease-out forwards;
+                  }
+                `}
+              </style>
+            </defs>
             <Pie
               data={data}
               cx="50%"
@@ -173,7 +186,7 @@ export function AnimatedChart({
               animationBegin={0}
               animationEasing="ease-out"
               startAngle={90}
-              endAngle={-270}
+              endAngle={animate ? -270 : -270}
               label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
             >
               {data.map((entry, index) => (
