@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { QRScanner, ScannedResult } from '@/components/features/QRScanner';
 import { InspectionChecklist } from '@/components/features/InspectionChecklist';
+import { AnimatedChart } from '@/components/charts/AnimatedChart';
 import {
   Search,
   Plus,
@@ -32,6 +33,7 @@ import {
   AlertCircle,
   CheckCircle,
   QrCode,
+  BarChart3,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -99,6 +101,22 @@ const VIOLATIONS = [
   },
 ];
 
+const ESTABLISHMENT_TYPES_DATA = [
+  { name: 'Food Establishment', value: 35 },
+  { name: 'Food Retail', value: 25 },
+  { name: 'Personal Care', value: 22 },
+  { name: 'Accommodation', value: 18 },
+];
+
+const MONTHLY_PERMITS_DATA = [
+  { name: 'Jul', permits: 8 },
+  { name: 'Aug', permits: 12 },
+  { name: 'Sep', permits: 10 },
+  { name: 'Oct', permits: 15 },
+  { name: 'Nov', permits: 18 },
+  { name: 'Dec', permits: 14 },
+];
+
 export default function Sanitation() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,18 +154,22 @@ export default function Sanitation() {
 
       <Tabs defaultValue="permits" className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-lg">
             <TabsTrigger value="permits" className="gap-2">
               <Building2 className="w-4 h-4" />
-              Permits
+              <span className="hidden sm:inline">Permits</span>
             </TabsTrigger>
             <TabsTrigger value="inspections" className="gap-2">
               <ClipboardCheck className="w-4 h-4" />
-              Inspections
+              <span className="hidden sm:inline">Inspections</span>
             </TabsTrigger>
             <TabsTrigger value="violations" className="gap-2">
               <AlertCircle className="w-4 h-4" />
-              Violations
+              <span className="hidden sm:inline">Violations</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
           </TabsList>
 
@@ -317,7 +339,7 @@ export default function Sanitation() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -372,7 +394,7 @@ export default function Sanitation() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -421,6 +443,27 @@ export default function Sanitation() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-in">
+            <AnimatedChart
+              title="Establishment Types"
+              description="Distribution of registered establishments"
+              data={ESTABLISHMENT_TYPES_DATA}
+              type="pie"
+              dataKeys={['value']}
+            />
+            <AnimatedChart
+              title="Monthly Permits Issued"
+              description="Permits issued over the last 6 months"
+              data={MONTHLY_PERMITS_DATA}
+              type="bar"
+              dataKeys={['permits']}
+              colors={['hsl(var(--primary))']}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -34,6 +34,7 @@ import {
   Bell,
   Calendar,
   QrCode,
+  BarChart3,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -197,38 +198,23 @@ export default function Immunization() {
         )}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <AnimatedChart
-          title="Vaccination Trend"
-          description="Monthly vaccinations administered"
-          data={VACCINATION_TREND_DATA}
-          type="area"
-          dataKeys={['vaccinations']}
-          colors={['hsl(var(--primary))']}
-        />
-        <AnimatedChart
-          title="Nutrition Status Distribution"
-          description="Current nutrition assessment results"
-          data={NUTRITION_STATUS_DATA}
-          type="pie"
-          dataKeys={['value']}
-        />
-      </div>
-
       <Tabs defaultValue="vaccinations" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-lg">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
           <TabsTrigger value="vaccinations" className="gap-2">
             <Syringe className="w-4 h-4" />
-            Vaccinations
+            <span className="hidden sm:inline">Vaccinations</span>
           </TabsTrigger>
           <TabsTrigger value="nutrition" className="gap-2">
             <Baby className="w-4 h-4" />
-            Nutrition
+            <span className="hidden sm:inline">Nutrition</span>
           </TabsTrigger>
           <TabsTrigger value="reminders" className="gap-2">
             <Bell className="w-4 h-4" />
-            Reminders
+            <span className="hidden sm:inline">Reminders</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -343,7 +329,7 @@ export default function Immunization() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -417,7 +403,7 @@ export default function Immunization() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -449,6 +435,27 @@ export default function Immunization() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-in">
+            <AnimatedChart
+              title="Vaccination Trend"
+              description="Monthly vaccinations administered"
+              data={VACCINATION_TREND_DATA}
+              type="area"
+              dataKeys={['vaccinations']}
+              colors={['hsl(var(--primary))']}
+            />
+            <AnimatedChart
+              title="Nutrition Status Distribution"
+              description="Current nutrition assessment results"
+              data={NUTRITION_STATUS_DATA}
+              type="pie"
+              dataKeys={['value']}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AnimatedChart } from '@/components/charts/AnimatedChart';
 import {
   Search,
   Plus,
@@ -22,6 +23,7 @@ import {
   AlertTriangle,
   Calendar,
   CheckCircle,
+  BarChart3,
 } from 'lucide-react';
 
 const COMPLAINTS = [
@@ -92,6 +94,11 @@ const SERVICE_TRACKING = [
   },
 ];
 
+const SERVICE_TYPES_DATA = [
+  { name: 'Septic Tank Desludging', value: 65 },
+  { name: 'Drainage Inspection', value: 35 },
+];
+
 export default function Wastewater() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,18 +117,22 @@ export default function Wastewater() {
       </div>
 
       <Tabs defaultValue="complaints" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-lg">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
           <TabsTrigger value="complaints" className="gap-2">
             <AlertTriangle className="w-4 h-4" />
-            Complaints
+            <span className="hidden sm:inline">Complaints</span>
           </TabsTrigger>
           <TabsTrigger value="scheduling" className="gap-2">
             <Calendar className="w-4 h-4" />
-            Scheduling
+            <span className="hidden sm:inline">Scheduling</span>
           </TabsTrigger>
           <TabsTrigger value="tracking" className="gap-2">
             <Droplets className="w-4 h-4" />
-            Tracking
+            <span className="hidden sm:inline">Tracking</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -166,8 +177,12 @@ export default function Wastewater() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {COMPLAINTS.map((complaint) => (
-                      <TableRow key={complaint.id}>
+                    {COMPLAINTS.map((complaint, index) => (
+                      <TableRow 
+                        key={complaint.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{complaint.id}</TableCell>
                         <TableCell>{complaint.complainant}</TableCell>
                         <TableCell>{complaint.type}</TableCell>
@@ -239,7 +254,7 @@ export default function Wastewater() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -254,8 +269,12 @@ export default function Wastewater() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {SCHEDULES.map((schedule) => (
-                      <TableRow key={schedule.id}>
+                    {SCHEDULES.map((schedule, index) => (
+                      <TableRow 
+                        key={schedule.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{schedule.id}</TableCell>
                         <TableCell>{schedule.complaintId}</TableCell>
                         <TableCell>{schedule.type}</TableCell>
@@ -288,7 +307,7 @@ export default function Wastewater() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -302,8 +321,12 @@ export default function Wastewater() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {SERVICE_TRACKING.map((service) => (
-                      <TableRow key={service.id}>
+                    {SERVICE_TRACKING.map((service, index) => (
+                      <TableRow 
+                        key={service.id}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <TableCell className="font-medium">{service.id}</TableCell>
                         <TableCell>{service.complaintId}</TableCell>
                         <TableCell>{service.serviceType}</TableCell>
@@ -320,6 +343,20 @@ export default function Wastewater() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 gap-6 animate-slide-in">
+            <AnimatedChart
+              title="Service Types"
+              description="Distribution of wastewater and septic services"
+              data={SERVICE_TYPES_DATA}
+              type="pie"
+              dataKeys={['value']}
+              height={350}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

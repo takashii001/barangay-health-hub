@@ -7,6 +7,7 @@ import { AnimatedChart } from '@/components/charts/AnimatedChart';
 import { HealthIndexMeter } from '@/components/charts/HealthIndexMeter';
 import { BarangayHealthMap } from '@/components/maps/BarangayHealthMap';
 import { ReportGenerator } from '@/components/features/ReportGenerator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Activity,
   TrendingUp,
@@ -17,6 +18,7 @@ import {
   Droplets,
   Bug,
   Map,
+  BarChart3,
 } from 'lucide-react';
 import {
   Dialog,
@@ -70,7 +72,6 @@ const ZONE_DISTRIBUTION_DATA = [
 
 export default function Surveillance() {
   const { user } = useAuth();
-  const [showMap, setShowMap] = useState(false);
   const [showReportGenerator, setShowReportGenerator] = useState(false);
 
   // Only certain roles can access surveillance
@@ -95,177 +96,169 @@ export default function Surveillance() {
 
   return (
     <div className="animate-fade-in">
-      <div className="page-header">
-        <h1 className="page-title">Health Surveillance System</h1>
-        <p className="page-description">
-          Real-time disease monitoring, trends, and outbreak management
-          {user?.role === 'captain' && ' (View Only Mode)'}
-        </p>
+      <div className="page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="page-title">Health Surveillance System</h1>
+          <p className="page-description">
+            Real-time disease monitoring, trends, and outbreak management
+            {user?.role === 'captain' && ' (View Only Mode)'}
+          </p>
+        </div>
+        <Dialog open={showReportGenerator} onOpenChange={setShowReportGenerator}>
+          <DialogTrigger asChild>
+            <Button className="gap-2 bg-primary">
+              <FileText className="w-4 h-4" />
+              Generate FHSIS Report
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Report Generator</DialogTitle>
+            </DialogHeader>
+            <ReportGenerator />
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Interactive Barangay Health Map - Full Width */}
+      <Card className="mb-6 animate-slide-in">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Map className="w-5 h-5 text-primary" />
+            Interactive Barangay Health Map
+          </CardTitle>
+          <CardDescription>Click on pins to view detailed health data for each zone</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BarangayHealthMap className="min-h-[400px]" />
+        </CardContent>
+      </Card>
 
       {/* Health Index Meter */}
       <div className="mb-6">
         <HealthIndexMeter />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {WEEKLY_STATS.map((stat, index) => (
-          <Card 
-            key={stat.label} 
-            className="card-hover animate-scale-in"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="text-3xl font-bold mt-1">{stat.value}</p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      stat.change.startsWith('+') ? 'text-destructive' : 'text-status-success'
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsTrigger value="overview" className="gap-2">
+            <Activity className="w-4 h-4" />
+            <span className="hidden sm:inline">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="alerts" className="gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            <span className="hidden sm:inline">Alerts</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Analytics</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-in">
+            {WEEKLY_STATS.map((stat, index) => (
+              <Card 
+                key={stat.label} 
+                className="card-hover animate-scale-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">{stat.label}</p>
+                      <p className="text-3xl font-bold mt-1">{stat.value}</p>
+                      <p
+                        className={`text-xs mt-1 ${
+                          stat.change.startsWith('+') ? 'text-destructive' : 'text-status-success'
+                        }`}
+                      >
+                        {stat.change} from last week
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <stat.icon className="w-6 h-6 text-primary" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* Alerts Tab */}
+        <TabsContent value="alerts">
+          <Card className="animate-slide-in">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-status-warning" />
+                Active Outbreak Alerts
+              </CardTitle>
+              <CardDescription>Current disease outbreaks requiring attention</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {OUTBREAK_ALERTS.map((alert, index) => (
+                  <div
+                    key={alert.id}
+                    className={`p-4 rounded-lg border animate-fade-in ${
+                      alert.severity === 'Moderate'
+                        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                        : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                     }`}
+                    style={{ animationDelay: `${(index + 1) * 150}ms` }}
                   >
-                    {stat.change} from last week
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <stat.icon className="w-6 h-6 text-primary" />
-                </div>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{alert.disease} Outbreak</h3>
+                          <StatusBadge
+                            status={alert.severity === 'Moderate' ? 'warning' : 'info'}
+                            label={alert.severity}
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          <MapPin className="w-3 h-3 inline mr-1" />
+                          {alert.zone} • {alert.cases} cases • Trend: {alert.trend}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Last updated: {alert.lastUpdate}
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </TabsContent>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Outbreak Alerts */}
-        <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '100ms' }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-status-warning" />
-              Active Outbreak Alerts
-            </CardTitle>
-            <CardDescription>Current disease outbreaks requiring attention</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {OUTBREAK_ALERTS.map((alert, index) => (
-                <div
-                  key={alert.id}
-                  className={`p-4 rounded-lg border animate-fade-in ${
-                    alert.severity === 'Moderate'
-                      ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-                      : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                  }`}
-                  style={{ animationDelay: `${(index + 1) * 150}ms` }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{alert.disease} Outbreak</h3>
-                        <StatusBadge
-                          status={alert.severity === 'Moderate' ? 'warning' : 'info'}
-                          label={alert.severity}
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        <MapPin className="w-3 h-3 inline mr-1" />
-                        {alert.zone} • {alert.cases} cases • Trend: {alert.trend}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Last updated: {alert.lastUpdate}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card className="animate-slide-in" style={{ animationDelay: '200ms' }}>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Surveillance tools and reports</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Dialog open={showMap} onOpenChange={setShowMap}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start gap-2">
-                  <Map className="w-4 h-4" />
-                  View Barangay Health Map
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Interactive Barangay Health Map</DialogTitle>
-                </DialogHeader>
-                <BarangayHealthMap />
-              </DialogContent>
-            </Dialog>
-            
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <TrendingUp className="w-4 h-4" />
-              View Trend Charts
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <MapPin className="w-4 h-4" />
-              Disease Heatmap
-            </Button>
-            
-            <Dialog open={showReportGenerator} onOpenChange={setShowReportGenerator}>
-              <DialogTrigger asChild>
-                <Button variant="default" className="w-full justify-start gap-2 bg-primary">
-                  <FileText className="w-4 h-4" />
-                  Generate Monthly FHSIS Report
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Report Generator</DialogTitle>
-                </DialogHeader>
-                <ReportGenerator />
-              </DialogContent>
-            </Dialog>
-            
-            {user?.role !== 'captain' && (
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Create Alert
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Disease Trend Chart */}
-        <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '300ms' }}>
-          <AnimatedChart
-            title="Disease Trend (Last 30 Days)"
-            description="Weekly case counts by disease type"
-            data={DISEASE_TREND_DATA}
-            type="area"
-            dataKeys={['Dengue', 'Respiratory', 'Diarrhea']}
-            colors={['hsl(var(--destructive))', 'hsl(var(--primary))', 'hsl(var(--chart-3))']}
-          />
-        </Card>
-
-        {/* Zone Distribution */}
-        <Card className="animate-slide-in" style={{ animationDelay: '400ms' }}>
-          <AnimatedChart
-            title="Cases by Zone"
-            description="Distribution across barangay zones"
-            data={ZONE_DISTRIBUTION_DATA}
-            type="bar"
-            dataKeys={['cases']}
-            colors={['hsl(var(--primary))']}
-          />
-        </Card>
-      </div>
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-in">
+            <AnimatedChart
+              title="Disease Trend (Last 30 Days)"
+              description="Weekly case counts by disease type"
+              data={DISEASE_TREND_DATA}
+              type="area"
+              dataKeys={['Dengue', 'Respiratory', 'Diarrhea']}
+              colors={['hsl(var(--destructive))', 'hsl(var(--primary))', 'hsl(var(--chart-3))']}
+            />
+            <AnimatedChart
+              title="Cases by Zone"
+              description="Distribution across barangay zones"
+              data={ZONE_DISTRIBUTION_DATA}
+              type="bar"
+              dataKeys={['cases']}
+              colors={['hsl(var(--primary))']}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

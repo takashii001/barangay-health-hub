@@ -44,6 +44,7 @@ import {
   ChevronLeft,
   ChevronRight,
   QrCode,
+  BarChart3,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -144,12 +145,12 @@ const CONSULTATION_TREND_DATA = [
   { name: 'Sun', consultations: 4 },
 ];
 
-const DIAGNOSIS_DISTRIBUTION_DATA = [
-  { name: 'Respiratory', value: 30 },
-  { name: 'Hypertension', value: 20 },
-  { name: 'Dengue', value: 18 },
-  { name: 'Influenza', value: 17 },
-  { name: 'Leptospirosis', value: 15 },
+const SERVICES_PROVIDED_DATA = [
+  { name: 'Consultation', value: 35 },
+  { name: 'Prenatal', value: 20 },
+  { name: 'Blood Monitoring', value: 18 },
+  { name: 'Vaccination', value: 15 },
+  { name: 'Laboratory', value: 12 },
 ];
 
 export default function HealthCenter() {
@@ -207,38 +208,23 @@ export default function HealthCenter() {
         )}
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <AnimatedChart
-          title="Weekly Consultations"
-          description="Daily consultation count this week"
-          data={CONSULTATION_TREND_DATA}
-          type="bar"
-          dataKeys={['consultations']}
-          colors={['hsl(var(--primary))']}
-        />
-        <AnimatedChart
-          title="Diagnosis Distribution"
-          description="Common diagnoses this month"
-          data={DIAGNOSIS_DISTRIBUTION_DATA}
-          type="pie"
-          dataKeys={['value']}
-        />
-      </div>
-
       <Tabs defaultValue="patients" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
           <TabsTrigger value="patients" className="gap-2">
             <Users className="w-4 h-4" />
-            Patients
+            <span className="hidden sm:inline">Patients</span>
           </TabsTrigger>
           <TabsTrigger value="consultations" className="gap-2">
             <Stethoscope className="w-4 h-4" />
-            Consultations
+            <span className="hidden sm:inline">Consultations</span>
           </TabsTrigger>
           <TabsTrigger value="inventory" className="gap-2">
             <Pill className="w-4 h-4" />
-            Inventory
+            <span className="hidden sm:inline">Inventory</span>
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Analytics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -319,7 +305,7 @@ export default function HealthCenter() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -418,7 +404,7 @@ export default function HealthCenter() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
@@ -480,12 +466,12 @@ export default function HealthCenter() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border">
+              <div className="rounded-lg border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="data-table-header">
                       <TableHead>ID</TableHead>
-                      <TableHead>Medicine Name</TableHead>
+                      <TableHead>Medicine</TableHead>
                       <TableHead>Stock</TableHead>
                       <TableHead>Unit</TableHead>
                       <TableHead>Status</TableHead>
@@ -516,11 +502,16 @@ export default function HealthCenter() {
                           />
                         </TableCell>
                         <TableCell className="text-right">
-                          {canEdit && (
+                          <div className="flex justify-end gap-1">
                             <Button variant="ghost" size="icon">
-                              <Edit className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
                             </Button>
-                          )}
+                            {canEdit && (
+                              <Button variant="ghost" size="icon">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -529,6 +520,27 @@ export default function HealthCenter() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-in">
+            <AnimatedChart
+              title="Weekly Consultations"
+              description="Daily consultation count this week"
+              data={CONSULTATION_TREND_DATA}
+              type="bar"
+              dataKeys={['consultations']}
+              colors={['hsl(var(--primary))']}
+            />
+            <AnimatedChart
+              title="Services Provided"
+              description="Distribution of health center services"
+              data={SERVICES_PROVIDED_DATA}
+              type="pie"
+              dataKeys={['value']}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
