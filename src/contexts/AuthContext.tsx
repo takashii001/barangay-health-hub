@@ -95,12 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signup = useCallback(async (email: string, password: string, fullName: string, role: UserRole) => {
-    if (!isSupabaseConfigured) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setUser({ id: '99', email, name: fullName, role });
-      return;
-    }
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -113,14 +107,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Create user profile in users table
     if (data.user) {
-      await supabase.from('users').insert({
+      await supabase.from('users').upsert({
         id: data.user.id,
         email,
         full_name: fullName,
         role,
       });
     }
-  }, [isSupabaseConfigured]);
+  }, []);
 
   const logout = useCallback(async () => {
     if (isSupabaseConfigured) {
