@@ -90,22 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    if (!isSupabaseConfigured) {
-      // Demo mode: match by email or default to citizen
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const matchedUser = Object.values(DEMO_USERS).find(u => u.email === email);
-      if (matchedUser) {
-        setUser(matchedUser);
-      } else {
-        // Use the role from email pattern or default
-        setUser(DEMO_USERS.citizen);
-      }
-      return;
-    }
-
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-  }, [isSupabaseConfigured]);
+  }, []);
 
   const signup = useCallback(async (email: string, password: string, fullName: string, role: UserRole) => {
     if (!isSupabaseConfigured) {
