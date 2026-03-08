@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { User, UserRole, ROLE_LABELS } from '@/types/auth';
+import { supabase } from '@/lib/supabase';
+import { User, UserRole } from '@/types/auth';
 import type { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -14,46 +14,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Demo users for prototype fallback (when Supabase is not configured)
-const DEMO_USERS: Record<UserRole, User> = {
-  citizen: {
-    id: '1',
-    email: 'juan.delacruz@email.com',
-    name: 'Juan Dela Cruz',
-    role: 'citizen',
-  },
-  business_owner: {
-    id: '2',
-    email: 'maria.santos@business.com',
-    name: 'Maria Santos',
-    role: 'business_owner',
-  },
-  bhw: {
-    id: '3',
-    email: 'ana.reyes@lgu.gov.ph',
-    name: 'Ana Reyes',
-    role: 'bhw',
-  },
-  sanitation_inspector: {
-    id: '4',
-    email: 'pedro.garcia@lgu.gov.ph',
-    name: 'Pedro Garcia',
-    role: 'sanitation_inspector',
-  },
-  nurse: {
-    id: '5',
-    email: 'rosa.cruz@lgu.gov.ph',
-    name: 'Rosa Cruz',
-    role: 'nurse',
-  },
-  admin: {
-    id: '6',
-    email: 'admin@lgu.gov.ph',
-    name: 'Dr. Jose Rizal',
-    role: 'admin',
-  },
-};
 
 function mapDbUserToUser(dbUser: any): User {
   return {
