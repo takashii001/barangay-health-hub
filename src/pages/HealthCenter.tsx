@@ -159,8 +159,8 @@ export default function HealthCenter() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
 
-  const isReadOnly = user?.role === 'captain';
-  const canEdit = user?.role === 'bhw' || user?.role === 'clerk' || user?.role === 'sysadmin';
+  const isReadOnly = user?.role === 'admin';
+  const canEdit = user?.role === 'bhw' || user?.role === 'nurse' || user?.role === 'admin';
 
   const handleAddPatient = () => {
     toast({

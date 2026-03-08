@@ -100,7 +100,7 @@ export default function UserManagement() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   // Only sysadmin can access this page
-  if (user?.role !== 'sysadmin') {
+  if (user?.role !== 'admin') {
     return (
       <div className="animate-fade-in flex items-center justify-center min-h-[60vh]">
         <Card className="max-w-md">

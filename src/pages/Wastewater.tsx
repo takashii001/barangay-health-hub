@@ -103,8 +103,8 @@ export default function Wastewater() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const isReadOnly = user?.role === 'captain';
-  const canEdit = user?.role === 'bsi' || user?.role === 'clerk' || user?.role === 'sysadmin';
+  const isReadOnly = user?.role === 'admin';
+  const canEdit = user?.role === 'sanitation_inspector' || user?.role === 'admin';
 
   return (
     <div className="animate-fade-in">

@@ -47,8 +47,8 @@ const DISEASE_DISTRIBUTION_DATA = [
 export default function Dashboard() {
   const { user } = useAuth();
 
-  const isReadOnly = user?.role === 'captain';
-  const showHealthIndex = ['captain', 'clerk', 'sysadmin'].includes(user?.role || '');
+  const isReadOnly = user?.role === 'admin';
+  const showHealthIndex = ['admin', 'nurse'].includes(user?.role || '');
 
   return (
     <div className="animate-fade-in">

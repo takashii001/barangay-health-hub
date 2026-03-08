@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, ROLE_LABELS, ROLE_COLORS } from '@/types/auth';
@@ -11,19 +11,18 @@ import { Activity, Eye, EyeOff, ArrowRight, Moon, Sun } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const DEMO_ROLES: { role: UserRole; description: string }[] = [
-  { role: 'resident', description: 'Limited view-only access' },
+  { role: 'citizen', description: 'Submit requests & track status' },
+  { role: 'business_owner', description: 'Manage establishments & permits' },
   { role: 'bhw', description: 'Health services & immunization' },
-  { role: 'bsi', description: 'Sanitation & inspections' },
-  { role: 'clerk', description: 'Full administrative access' },
-  { role: 'captain', description: 'Supervisory read-only' },
-  { role: 'sysadmin', description: 'Full system access' },
+  { role: 'sanitation_inspector', description: 'Inspections & compliance' },
+  { role: 'nurse', description: 'Vaccination & nutrition' },
+  { role: 'admin', description: 'Full system access' },
 ];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('clerk');
   const [isLoading, setIsLoading] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains('dark');
@@ -37,26 +36,26 @@ export default function LoginPage() {
     document.documentElement.classList.toggle('dark');
   };
 
+  const getRedirectPath = (role: UserRole) => {
+    if (role === 'citizen' || role === 'business_owner') return '/portal';
+    return '/dashboard';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await login(email, password, selectedRole);
+      await login(email, password);
       toast({
         title: 'Login successful',
-        description: `Welcome! You are logged in as ${ROLE_LABELS[selectedRole]}.`,
+        description: 'Welcome to the Health & Sanitation Management System.',
       });
-      
-      if (selectedRole === 'resident') {
-        navigate('/resident');
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (error) {
+      navigate('/dashboard');
+    } catch (error: any) {
       toast({
         title: 'Login failed',
-        description: 'Please check your credentials and try again.',
+        description: error?.message || 'Please check your credentials and try again.',
         variant: 'destructive',
       });
     } finally {
@@ -66,19 +65,28 @@ export default function LoginPage() {
 
   const handleQuickLogin = async (role: UserRole) => {
     setIsLoading(true);
+    const demoEmails: Record<UserRole, string> = {
+      citizen: 'juan.delacruz@email.com',
+      business_owner: 'maria.santos@business.com',
+      bhw: 'ana.reyes@lgu.gov.ph',
+      sanitation_inspector: 'pedro.garcia@lgu.gov.ph',
+      nurse: 'rosa.cruz@lgu.gov.ph',
+      admin: 'admin@lgu.gov.ph',
+    };
     try {
-      await login('demo@barangay.gov.ph', 'demo123', role);
+      await login(demoEmails[role], 'demo123');
       toast({
         title: 'Demo Login Successful',
         description: `Logged in as ${ROLE_LABELS[role]}`,
         className: 'bg-green-600 text-white border-green-700',
       });
-      
-      if (role === 'resident') {
-        navigate('/resident');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate(getRedirectPath(role));
+    } catch (error: any) {
+      toast({
+        title: 'Login failed',
+        description: error?.message || 'Could not log in.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +107,7 @@ export default function LoginPage() {
                 HSM System
               </h1>
               <p className="text-sm text-secondary-foreground/70">
-                Barangay Management
+                Local Government Unit
               </p>
             </div>
           </div>
@@ -111,15 +119,15 @@ export default function LoginPage() {
           </h2>
 
           <p className="text-secondary-foreground/80 text-lg max-w-md">
-            A comprehensive system for managing barangay health services, 
-            sanitation permits, immunization records, and community health surveillance.
+            A comprehensive system for managing health consultations, sanitation permits,
+            inspections, vaccination tracking, and disease surveillance.
           </p>
 
           <div className="mt-12 grid grid-cols-2 gap-4 max-w-md">
             {[
-              { label: 'Health Center', value: '5 Modules' },
-              { label: 'Active Users', value: '150+' },
-              { label: 'Records', value: '10,000+' },
+              { label: 'System Modules', value: '7+' },
+              { label: 'User Roles', value: '6' },
+              { label: 'Digital Records', value: 'Real-time' },
               { label: 'Uptime', value: '99.9%' },
             ].map((stat) => (
               <div key={stat.label} className="bg-secondary-foreground/5 rounded-xl p-4">
@@ -130,14 +138,12 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Decorative elements */}
         <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute top-20 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-2xl" />
       </div>
 
       {/* Right Panel - Login Form */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-background relative">
-        {/* Dark Mode Toggle */}
         <Button
           variant="outline"
           size="icon"
@@ -155,7 +161,7 @@ export default function LoginPage() {
             </div>
             <div>
               <h1 className="text-xl font-display font-bold">HSM System</h1>
-              <p className="text-xs text-muted-foreground">Barangay Management</p>
+              <p className="text-xs text-muted-foreground">Local Government Unit</p>
             </div>
           </div>
 
@@ -173,7 +179,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@barangay.gov.ph"
+                    placeholder="you@lgu.gov.ph"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -205,11 +211,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Signing in...' : 'Sign In'}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -249,7 +251,7 @@ export default function LoginPage() {
           </Card>
 
           <p className="text-center text-xs text-muted-foreground mt-6">
-            This is a prototype system for demonstration purposes only.
+            Government Service Management System — Health & Sanitation Module
           </p>
         </div>
       </div>
