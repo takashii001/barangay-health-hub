@@ -117,12 +117,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-  }, [isSupabaseConfigured]);
+  }, []);
 
   return (
     <AuthContext.Provider
