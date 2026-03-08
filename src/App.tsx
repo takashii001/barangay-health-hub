@@ -20,22 +20,42 @@ import ResidentPermits from "./pages/ResidentPermits";
 import ResidentComplaints from "./pages/ResidentComplaints";
 import ResidentRequest from "./pages/ResidentRequest";
 import ResidentQRCode from "./pages/ResidentQRCode";
+import EstablishmentManagement from "./pages/EstablishmentManagement";
+import InspectionManagement from "./pages/InspectionManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 }
 
 function AppRoutes() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  const isPortalUser = user?.role === 'citizen' || user?.role === 'business_owner';
 
   return (
     <Routes>
@@ -43,18 +63,18 @@ function AppRoutes() {
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate to={user?.role === 'resident' ? '/resident' : '/dashboard'} replace />
+            <Navigate to={isPortalUser ? '/portal' : '/dashboard'} replace />
           ) : (
             <LoginPage />
           )
         }
       />
-      
+
       <Route
         path="/"
         element={
           isAuthenticated ? (
-            <Navigate to={user?.role === 'resident' ? '/resident' : '/dashboard'} replace />
+            <Navigate to={isPortalUser ? '/portal' : '/dashboard'} replace />
           ) : (
             <Navigate to="/login" replace />
           )
@@ -75,17 +95,24 @@ function AppRoutes() {
         <Route path="/immunization" element={<Immunization />} />
         <Route path="/wastewater" element={<Wastewater />} />
         <Route path="/surveillance" element={<Surveillance />} />
+        <Route path="/inspections" element={<InspectionManagement />} />
+        <Route path="/establishments" element={<EstablishmentManagement />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/settings" element={<Settings />} />
-        
-        {/* Resident Routes */}
-        <Route path="/resident" element={<ResidentPortal />} />
-        <Route path="/resident/health" element={<ResidentHealth />} />
-        <Route path="/resident/permits" element={<ResidentPermits />} />
-        <Route path="/resident/complaints" element={<ResidentComplaints />} />
-        <Route path="/resident/request" element={<ResidentRequest />} />
-        <Route path="/resident/qrcode" element={<ResidentQRCode />} />
+
+        {/* Portal Routes (Citizen & Business Owner) */}
+        <Route path="/portal" element={<ResidentPortal />} />
+        <Route path="/portal/health" element={<ResidentHealth />} />
+        <Route path="/portal/permits" element={<ResidentPermits />} />
+        <Route path="/portal/complaints" element={<ResidentComplaints />} />
+        <Route path="/portal/request" element={<ResidentRequest />} />
+        <Route path="/portal/qrcode" element={<ResidentQRCode />} />
+        <Route path="/portal/establishments" element={<EstablishmentManagement />} />
       </Route>
+
+      {/* Legacy redirects */}
+      <Route path="/resident" element={<Navigate to="/portal" replace />} />
+      <Route path="/resident/*" element={<Navigate to="/portal" replace />} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
