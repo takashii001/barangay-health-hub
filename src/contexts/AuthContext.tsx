@@ -147,16 +147,3 @@ export function useAuth() {
   return context;
 }
 
-// Helper hook for demo mode quick login
-export function useDemoLogin() {
-  const { login } = useAuth();
-
-  const demoLogin = useCallback(async (role: UserRole) => {
-    const demoUser = DEMO_USERS[role];
-    if (demoUser) {
-      await login(demoUser.email, 'demo123');
-    }
-  }, [login]);
-
-  return { demoLogin, demoUsers: DEMO_USERS };
-}
