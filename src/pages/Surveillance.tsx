@@ -101,7 +101,7 @@ export default function Surveillance() {
           <h1 className="page-title">Health Surveillance System</h1>
           <p className="page-description">
             Real-time disease monitoring, trends, and outbreak management
-            {user?.role === 'captain' && ' (View Only Mode)'}
+            {user?.role === 'admin' && ' (Admin View)'}
           </p>
         </div>
         <Dialog open={showReportGenerator} onOpenChange={setShowReportGenerator}>

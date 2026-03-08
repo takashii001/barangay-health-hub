@@ -141,8 +141,8 @@ export default function Immunization() {
   const [showScheduler, setShowScheduler] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
 
-  const isReadOnly = user?.role === 'captain';
-  const canEdit = user?.role === 'bhw' || user?.role === 'clerk' || user?.role === 'sysadmin';
+  const isReadOnly = user?.role === 'admin';
+  const canEdit = user?.role === 'bhw' || user?.role === 'nurse' || user?.role === 'admin';
 
   const handleQRScan = (result: ScannedResult) => {
     setShowScanner(false);
