@@ -27,70 +27,70 @@ function mapDbUserToUser(dbUser: any): User {
   };
 }
 
+function buildUserFromSession(sessionUser: any): User {
+  const userRole = sessionUser.user_metadata?.role || 'citizen';
+  return {
+    id: sessionUser.id,
+    email: sessionUser.email || '',
+    name: sessionUser.user_metadata?.full_name || sessionUser.email || '',
+    role: userRole as UserRole,
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      setSession(newSession);
-
-      if (newSession?.user) {
-        // Fetch user profile from users table
-        const { data: profile, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', newSession.user.id)
-          .single();
-
+  // Fetch profile from DB without blocking the auth listener
+  const fetchAndSetUser = useCallback((sessionUser: any) => {
+    supabase
+      .from('users')
+      .select('*')
+      .eq('id', sessionUser.id)
+      .single()
+      .then(({ data: profile, error }) => {
         if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
-          // Check if user has role in metadata, otherwise default to citizen
-          const userRole = newSession.user.user_metadata?.role || 'citizen';
-          setUser({
-            id: newSession.user.id,
-            email: newSession.user.email || '',
-            name: newSession.user.user_metadata?.full_name || newSession.user.email || '',
-            role: userRole as UserRole,
-          });
+          setUser(buildUserFromSession(sessionUser));
         }
+      });
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    // Step 1: Get the initial session synchronously from storage
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (!mounted) return;
+      setSession(initialSession);
+      if (initialSession?.user) {
+        fetchAndSetUser(initialSession.user);
+      }
+      // Always clear loading after initial session check
+      setIsLoading(false);
+    }).catch(() => {
+      if (mounted) setIsLoading(false);
+    });
+
+    // Step 2: Listen for subsequent auth changes (sign in, sign out, token refresh)
+    // CRITICAL: Do NOT use async/await inside this callback — it causes deadlocks
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (!mounted) return;
+      setSession(newSession);
+      if (newSession?.user) {
+        fetchAndSetUser(newSession.user);
       } else {
         setUser(null);
       }
-      setIsLoading(false);
     });
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
-      setSession(existingSession);
-      if (existingSession?.user) {
-        const { data: profile, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', existingSession.user.id)
-          .single();
-
-        if (profile && !error) {
-          setUser(mapDbUserToUser(profile));
-        } else {
-          // Check if user has role in metadata, otherwise default to citizen
-          const userRole = existingSession.user.user_metadata?.role || 'citizen';
-          setUser({
-            id: existingSession.user.id,
-            email: existingSession.user.email || '',
-            name: existingSession.user.user_metadata?.full_name || existingSession.user.email || '',
-            role: userRole as UserRole,
-          });
-        }
-      }
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchAndSetUser]);
 
   const login = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -108,7 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     if (error) throw error;
 
-    // Create user profile in users table
     if (data.user) {
       await supabase.from('users').upsert({
         id: data.user.id,
@@ -125,11 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Logout error:', error);
     }
-    // Always clear local state regardless of API success
     setUser(null);
     setSession(null);
-    
-    // Force redirect to login page
     window.location.href = '/login';
   }, []);
 
@@ -157,4 +153,3 @@ export function useAuth() {
   }
   return context;
 }
-
