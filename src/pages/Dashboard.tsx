@@ -5,14 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AnimatedChart } from '@/components/charts/AnimatedChart';
 import { HealthIndexMeter } from '@/components/charts/HealthIndexMeter';
 import {
-  Users,
-  Stethoscope,
-  ClipboardCheck,
-  Syringe,
-  AlertTriangle,
-  TrendingUp,
-  Calendar,
-  Activity,
+  Users, Stethoscope, ClipboardCheck, Syringe, AlertTriangle, TrendingUp, Calendar, Activity,
 } from 'lucide-react';
 
 const RECENT_ACTIVITIES = [
@@ -48,102 +41,50 @@ export default function Dashboard() {
   const { user } = useAuth();
 
   const isReadOnly = user?.role === 'admin';
-  const showHealthIndex = ['admin', 'nurse'].includes(user?.role || '');
+  const showHealthIndex = ['admin', 'health_worker'].includes(user?.role || '');
 
   return (
     <div className="animate-fade-in">
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
         <p className="page-description">
-          Welcome back, {user?.name}! 
+          Welcome back, {user?.name || 'User'}!
           {isReadOnly && ' (View Only Mode)'}
         </p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          title="Total Patients"
-          value="1,284"
-          change="+12% from last month"
-          changeType="positive"
-          icon={Users}
-        />
-        <StatCard
-          title="Consultations Today"
-          value="48"
-          change="+5 from yesterday"
-          changeType="positive"
-          icon={Stethoscope}
-        />
-        <StatCard
-          title="Pending Permits"
-          value="23"
-          change="8 require inspection"
-          changeType="neutral"
-          icon={ClipboardCheck}
-        />
-        <StatCard
-          title="Vaccinations (Dec)"
-          value="156"
-          change="Target: 200"
-          changeType="neutral"
-          icon={Syringe}
-        />
+        <StatCard title="Total Patients" value="1,284" change="+12% from last month" changeType="positive" icon={Users} />
+        <StatCard title="Consultations Today" value="48" change="+5 from yesterday" changeType="positive" icon={Stethoscope} />
+        <StatCard title="Pending Permits" value="23" change="8 require inspection" changeType="neutral" icon={ClipboardCheck} />
+        <StatCard title="Vaccinations (Dec)" value="156" change="Target: 200" changeType="neutral" icon={Syringe} />
       </div>
 
-      {/* Health Index for Officials */}
       {showHealthIndex && (
-        <div className="mb-6">
-          <HealthIndexMeter />
-        </div>
+        <div className="mb-6"><HealthIndexMeter /></div>
       )}
 
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <AnimatedChart
-          title="Weekly Consultations & Vaccinations"
-          description="Health center activity trends"
-          data={MONTHLY_CONSULTATIONS_DATA}
-          type="bar"
-          dataKeys={['consultations', 'vaccinations']}
-          colors={['hsl(var(--primary))', 'hsl(var(--chart-2))']}
-        />
-        <AnimatedChart
-          title="Disease Distribution"
-          description="Current month breakdown"
-          data={DISEASE_DISTRIBUTION_DATA}
-          type="pie"
-          dataKeys={['value']}
-        />
+        <AnimatedChart title="Weekly Consultations & Vaccinations" description="Health center activity trends" data={MONTHLY_CONSULTATIONS_DATA} type="bar" dataKeys={['consultations', 'vaccinations']} colors={['hsl(var(--primary))', 'hsl(var(--chart-2))']} />
+        <AnimatedChart title="Disease Distribution" description="Current month breakdown" data={DISEASE_DISTRIBUTION_DATA} type="pie" dataKeys={['value']} />
       </div>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activities */}
         <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '100ms' }}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-primary" />
-              Recent Activities
-            </CardTitle>
+            <CardTitle className="flex items-center gap-2"><Activity className="w-5 h-5 text-primary" />Recent Activities</CardTitle>
             <CardDescription>Latest system activities and updates</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {RECENT_ACTIVITIES.map((activity, index) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center justify-between py-3 border-b border-border last:border-0 animate-fade-in"
-                  style={{ animationDelay: `${(index + 1) * 100}ms` }}
-                >
+                <div key={activity.id} className="flex items-center justify-between py-3 border-b border-border last:border-0 animate-fade-in" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-primary" />
                     <div>
                       <p className="text-sm font-medium">{activity.action}</p>
-                      <p className="text-xs text-muted-foreground">
-                        by {activity.user}
-                      </p>
+                      <p className="text-xs text-muted-foreground">by {activity.user}</p>
                     </div>
                   </div>
                   <span className="text-xs text-muted-foreground">{activity.time}</span>
@@ -153,23 +94,15 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Upcoming Schedules */}
         <Card className="animate-slide-in" style={{ animationDelay: '200ms' }}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
-              Upcoming Schedules
-            </CardTitle>
+            <CardTitle className="flex items-center gap-2"><Calendar className="w-5 h-5 text-primary" />Upcoming Schedules</CardTitle>
             <CardDescription>Events and activities this week</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {UPCOMING_SCHEDULES.map((schedule, index) => (
-                <div
-                  key={schedule.id}
-                  className="p-3 rounded-lg bg-muted/50 border border-border animate-scale-in"
-                  style={{ animationDelay: `${(index + 1) * 150}ms` }}
-                >
+                <div key={schedule.id} className="p-3 rounded-lg bg-muted/50 border border-border animate-scale-in" style={{ animationDelay: `${(index + 1) * 150}ms` }}>
                   <p className="font-medium text-sm">{schedule.title}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-muted-foreground">{schedule.date}</span>
@@ -182,13 +115,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Health Alerts */}
         <Card className="lg:col-span-2 animate-slide-in" style={{ animationDelay: '300ms' }}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-status-warning" />
-              Health Alerts
-            </CardTitle>
+            <CardTitle className="flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-status-warning" />Health Alerts</CardTitle>
             <CardDescription>Active health advisories and alerts</CardDescription>
           </CardHeader>
           <CardContent>
@@ -198,37 +127,24 @@ export default function Dashboard() {
                   <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-amber-800 dark:text-amber-200">
-                        Dengue Case Increase
-                      </p>
+                      <p className="font-medium text-amber-800 dark:text-amber-200">Dengue Case Increase</p>
                       <StatusBadge status="warning" label="Active" />
                     </div>
-                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                      5 new dengue cases reported in Zone 2. Enhanced surveillance recommended.
-                    </p>
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                      Reported: Dec 3, 2025
-                    </p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">5 new dengue cases reported in Zone 2. Enhanced surveillance recommended.</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Reported: Dec 3, 2025</p>
                   </div>
                 </div>
               </div>
-
               <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 animate-fade-in" style={{ animationDelay: '500ms' }}>
                 <div className="flex items-start gap-3">
                   <Syringe className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-blue-800 dark:text-blue-200">
-                        Measles Vaccination Drive
-                      </p>
+                      <p className="font-medium text-blue-800 dark:text-blue-200">Measles Vaccination Drive</p>
                       <StatusBadge status="info" label="Upcoming" />
                     </div>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                      Mass vaccination scheduled for children ages 6-59 months.
-                    </p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                      Date: Dec 5, 2025
-                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">Mass vaccination scheduled for children ages 6-59 months.</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">Date: Dec 5, 2025</p>
                   </div>
                 </div>
               </div>
@@ -236,13 +152,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Stats */}
         <Card className="animate-slide-in" style={{ animationDelay: '400ms' }}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Monthly Summary
-            </CardTitle>
+            <CardTitle className="flex items-center gap-2"><TrendingUp className="w-5 h-5 text-primary" />Monthly Summary</CardTitle>
             <CardDescription>December 2025 statistics</CardDescription>
           </CardHeader>
           <CardContent>
@@ -253,23 +165,11 @@ export default function Dashboard() {
                 { label: 'Vaccinations', value: '156', trend: '-5%' },
                 { label: 'Complaints Resolved', value: '12', trend: '+20%' },
               ].map((stat, index) => (
-                <div 
-                  key={stat.label} 
-                  className="flex items-center justify-between animate-fade-in"
-                  style={{ animationDelay: `${(index + 1) * 100 + 400}ms` }}
-                >
+                <div key={stat.label} className="flex items-center justify-between animate-fade-in" style={{ animationDelay: `${(index + 1) * 100 + 400}ms` }}>
                   <span className="text-sm text-muted-foreground">{stat.label}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{stat.value}</span>
-                    <span
-                      className={`text-xs ${
-                        stat.trend.startsWith('+')
-                          ? 'text-status-success'
-                          : 'text-destructive'
-                      }`}
-                    >
-                      {stat.trend}
-                    </span>
+                    <span className={`text-xs ${stat.trend.startsWith('+') ? 'text-status-success' : 'text-destructive'}`}>{stat.trend}</span>
                   </div>
                 </div>
               ))}

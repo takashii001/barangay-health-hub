@@ -6,27 +6,27 @@ export const applicationService = {
     const { data, error } = await supabase
       .from('applications')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('date_submitted', { ascending: false });
     if (error) throw error;
     return data as Application[];
   },
 
-  async getByApplicant(applicantId: string) {
+  async getByApplicant(userId: string) {
     const { data, error } = await supabase
       .from('applications')
       .select('*')
-      .eq('applicant_id', applicantId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId)
+      .order('date_submitted', { ascending: false });
     if (error) throw error;
     return data as Application[];
   },
 
-  async getByStatus(status: Application['status']) {
+  async getByStatus(status: string) {
     const { data, error } = await supabase
       .from('applications')
       .select('*')
       .eq('status', status)
-      .order('created_at', { ascending: false });
+      .order('date_submitted', { ascending: false });
     if (error) throw error;
     return data as Application[];
   },
@@ -35,13 +35,13 @@ export const applicationService = {
     const { data, error } = await supabase
       .from('applications')
       .select('*')
-      .eq('id', id)
+      .eq('application_id', id)
       .single();
     if (error) throw error;
     return data as Application;
   },
 
-  async create(application: Partial<Application> & { applicant_id: string; type: Application['type'] }) {
+  async create(application: Partial<Application> & { user_id: string; application_type: string }) {
     const { data, error } = await supabase
       .from('applications')
       .insert(application)
@@ -55,7 +55,7 @@ export const applicationService = {
     const { data, error } = await supabase
       .from('applications')
       .update(updates)
-      .eq('id', id)
+      .eq('application_id', id)
       .select()
       .single();
     if (error) throw error;
@@ -65,8 +65,8 @@ export const applicationService = {
   async getStats() {
     const { data, error } = await supabase
       .from('applications')
-      .select('status, type');
+      .select('status, application_type');
     if (error) throw error;
-    return data as Pick<Application, 'status' | 'type'>[];
+    return data;
   },
 };
