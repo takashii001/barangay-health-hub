@@ -15,83 +15,62 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function mapDbUserToUser(dbUser: any): User {
-  return {
-    id: dbUser.id,
-    email: dbUser.email,
-    name: dbUser.full_name || dbUser.email,
-    role: dbUser.user_type || 'citizen',
-    avatar: dbUser.avatar_url,
-    phone: dbUser.contact_no,
-    address: dbUser.address,
-  };
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user from database, fallback to session metadata
   const fetchAndSetUser = useCallback(async (sessionUser: any) => {
     try {
-      // First try to get user from database
+      // Query users table using user_id (not id)
       const { data: dbUser, error } = await supabase
         .from('users')
         .select('*')
-        .eq('id', sessionUser.id)
+        .eq('user_id', sessionUser.id)
         .single();
 
       if (!error && dbUser) {
-        // Use database user data
-        setUser(mapDbUserToUser(dbUser));
+        setUser({
+          id: dbUser.user_id,
+          email: dbUser.email,
+          name: dbUser.full_name || dbUser.email,
+          role: dbUser.user_type || 'citizen',
+          phone: dbUser.contact_no,
+          address: dbUser.address,
+        });
         return;
       }
-    } catch (error) {
-      console.log('Could not fetch user from database, using session metadata');
+    } catch (err) {
+      console.warn('Could not fetch user from users table, using session metadata:', err);
     }
 
     // Fallback to session metadata
-    let freshMetadata = sessionUser.user_metadata || {};
-    try {
-      const { data: { user: freshUser } } = await supabase.auth.getUser();
-      if (freshUser?.user_metadata) {
-        freshMetadata = freshUser.user_metadata;
-      }
-    } catch (err) {
-      console.log('Could not fetch fresh user data, using session metadata');
-    }
-
-    const displayName = 
-      freshMetadata.full_name || 
-      freshMetadata.name || 
-      freshMetadata.display_name ||
+    const meta = sessionUser.user_metadata || {};
+    const displayName =
+      meta.full_name ||
+      meta.name ||
       sessionUser.email?.split('@')[0]?.replace(/[._]/g, ' ')?.replace(/\b\w/g, (c: string) => c.toUpperCase()) ||
       'User';
 
-    const metadataRole = freshMetadata.user_type || freshMetadata.role;
-    const email = sessionUser.email || '';
+    const metaRole = meta.user_type || meta.role;
     let role: UserRole = 'citizen';
-
-    if (metadataRole && ['citizen', 'business_owner', 'health_worker', 'inspector', 'admin'].includes(metadataRole)) {
-      role = metadataRole as UserRole;
+    if (metaRole && ['citizen', 'business_owner', 'health_worker', 'inspector', 'admin'].includes(metaRole)) {
+      role = metaRole as UserRole;
     }
 
     setUser({
       id: sessionUser.id,
-      email,
+      email: sessionUser.email || '',
       name: displayName,
       role,
-      avatar: freshMetadata.avatar_url,
-      phone: freshMetadata.contact_no || freshMetadata.phone,
-      address: freshMetadata.address,
+      phone: meta.contact_no,
+      address: meta.address,
     });
   }, []);
 
   useEffect(() => {
     let mounted = true;
 
-    // Step 1: Get the initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!mounted) return;
       setSession(initialSession);
@@ -103,8 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) setIsLoading(false);
     });
 
-    // Step 2: Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!mounted) return;
       setSession(newSession);
       if (newSession?.user) {
@@ -136,18 +114,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     if (error) throw error;
 
-    // Try to insert into users table if it exists
     if (data.user) {
       try {
         await supabase.from('users').upsert({
-          id: data.user.id,
+          user_id: data.user.id,
           email,
           full_name: fullName,
           user_type: role,
         });
-      } catch (error) {
-        console.log('Could not insert into users table:', error);
-        // Don't throw error - user can still work with session metadata
+      } catch (err) {
+        console.warn('Could not insert into users table:', err);
       }
     }
   }, []);
@@ -155,8 +131,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch (err) {
+      console.error('Logout error:', err);
     }
     setUser(null);
     setSession(null);

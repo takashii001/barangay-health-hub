@@ -11,11 +11,11 @@ export const userService = {
     return data as DbUser[];
   },
 
-  async getById(id: string) {
+  async getById(userId: string) {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('id', id)
+      .eq('user_id', userId)
       .single();
     if (error) throw error;
     return data as DbUser;
@@ -31,11 +31,11 @@ export const userService = {
     return data as DbUser[];
   },
 
-  async update(id: string, updates: Partial<DbUser>) {
+  async update(userId: string, updates: Partial<DbUser>) {
     const { data, error } = await supabase
       .from('users')
       .update(updates)
-      .eq('id', id)
+      .eq('user_id', userId)
       .select()
       .single();
     if (error) throw error;

@@ -24,26 +24,20 @@ export default function Profile() {
     address: '',
   });
 
-  // Fetch user profile from database
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user?.id) return;
-      
       setIsLoading(true);
       try {
         const { data, error } = await supabase
           .from('users')
           .select('*')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
           .single();
 
         if (error) {
           console.error('Error fetching profile:', error);
-          toast({
-            title: 'Error',
-            description: 'Could not load profile data',
-            variant: 'destructive',
-          });
+          toast({ title: 'Error', description: 'Could not load profile data', variant: 'destructive' });
           return;
         }
 
@@ -54,64 +48,41 @@ export default function Profile() {
           contact_no: data?.contact_no || '',
           address: data?.address || '',
         });
-      } catch (error) {
-        console.error('Error:', error);
-        toast({
-          title: 'Error',
-          description: 'Could not load profile data',
-          variant: 'destructive',
-        });
+      } catch (err) {
+        console.error('Error:', err);
+        toast({ title: 'Error', description: 'Could not load profile data', variant: 'destructive' });
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchProfile();
   }, [user?.id]);
 
   const handleSave = async () => {
     if (!user?.id) return;
-
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from('users')
         .update({
           full_name: formData.full_name,
-          email: formData.email,
           contact_no: formData.contact_no,
           address: formData.address,
         })
-        .eq('id', user.id);
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error updating profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Could not update profile',
-          variant: 'destructive',
-        });
+        toast({ title: 'Error', description: 'Could not update profile', variant: 'destructive' });
         return;
       }
 
-      // Update local state
-      setUserProfile({
-        ...userProfile,
-        ...formData,
-      });
-
+      setUserProfile({ ...userProfile, ...formData });
       setIsEditing(false);
-      toast({
-        title: 'Profile Updated',
-        description: 'Your profile information has been saved.',
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: 'Error',
-        description: 'Could not update profile',
-        variant: 'destructive',
-      });
+      toast({ title: 'Profile Updated', description: 'Your profile information has been saved.' });
+    } catch (err) {
+      console.error('Error:', err);
+      toast({ title: 'Error', description: 'Could not update profile', variant: 'destructive' });
     } finally {
       setIsSaving(false);
     }
@@ -137,7 +108,6 @@ export default function Profile() {
     );
   }
 
-
   return (
     <div className="animate-fade-in">
       <div className="page-header">
@@ -153,7 +123,6 @@ export default function Profile() {
       </div>
 
       <div className="grid gap-6 max-w-4xl">
-        {/* Profile Information Card */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -170,11 +139,7 @@ export default function Profile() {
                 {isEditing ? (
                   <>
                     <Button onClick={handleSave} size="sm" disabled={isSaving}>
-                      {isSaving ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Save className="w-4 h-4 mr-2" />
-                      )}
+                      {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                       Save
                     </Button>
                     <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
@@ -194,73 +159,35 @@ export default function Profile() {
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Full Name
-                </Label>
+                <Label className="flex items-center gap-2"><User className="w-4 h-4" /> Full Name</Label>
                 {isEditing ? (
-                  <Input
-                    id="name"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  />
+                  <Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} />
                 ) : (
                   <div className="text-sm font-medium py-2">{userProfile?.full_name || 'Not provided'}</div>
                 )}
               </div>
-
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  Email Address
-                </Label>
-                {isEditing ? (
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                ) : (
-                  <div className="text-sm font-medium py-2">{userProfile?.email || 'Not provided'}</div>
-                )}
+                <Label className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email Address</Label>
+                <div className="text-sm font-medium py-2">{userProfile?.email || user.email || 'Not provided'}</div>
               </div>
-
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  Phone Number
-                </Label>
+                <Label className="flex items-center gap-2"><Phone className="w-4 h-4" /> Phone Number</Label>
                 {isEditing ? (
-                  <Input
-                    type="tel"
-                    value={formData.contact_no}
-                    onChange={(e) => setFormData({ ...formData, contact_no: e.target.value })}
-                    placeholder="Enter phone number"
-                  />
+                  <Input type="tel" value={formData.contact_no} onChange={(e) => setFormData({ ...formData, contact_no: e.target.value })} placeholder="Enter phone number" />
                 ) : (
                   <div className="text-sm font-medium py-2">{userProfile?.contact_no || 'Not provided'}</div>
                 )}
               </div>
-
               <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  Address
-                </Label>
+                <Label className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Address</Label>
                 {isEditing ? (
-                  <Input
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Enter address"
-                  />
+                  <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} placeholder="Enter address" />
                 ) : (
                   <div className="text-sm font-medium py-2">{userProfile?.address || 'Not provided'}</div>
                 )}
               </div>
             </div>
-
             <Separator />
-
             <div className="space-y-2">
               <Label>Account Role</Label>
               <div className="flex items-center gap-2">
@@ -270,7 +197,6 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
-
       </div>
     </div>
   );

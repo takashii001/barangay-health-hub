@@ -11,11 +11,11 @@ export const establishmentService = {
     return data as Establishment[];
   },
 
-  async getByOwner(ownerId: string) {
+  async getByOwner(userId: string) {
     const { data, error } = await supabase
       .from('establishments')
       .select('*')
-      .eq('owner_id', ownerId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data as Establishment[];
@@ -25,13 +25,13 @@ export const establishmentService = {
     const { data, error } = await supabase
       .from('establishments')
       .select('*')
-      .eq('id', id)
+      .eq('establishment_id', id)
       .single();
     if (error) throw error;
     return data as Establishment;
   },
 
-  async create(establishment: Partial<Establishment> & { owner_id: string; name: string; type: string; address: string }) {
+  async create(establishment: Partial<Establishment> & { user_id: string; business_name: string; business_type: string; address: string }) {
     const { data, error } = await supabase
       .from('establishments')
       .insert(establishment)
@@ -45,7 +45,7 @@ export const establishmentService = {
     const { data, error } = await supabase
       .from('establishments')
       .update(updates)
-      .eq('id', id)
+      .eq('establishment_id', id)
       .select()
       .single();
     if (error) throw error;
