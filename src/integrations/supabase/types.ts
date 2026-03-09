@@ -301,6 +301,7 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_inspector_or_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       user_type_enum:
