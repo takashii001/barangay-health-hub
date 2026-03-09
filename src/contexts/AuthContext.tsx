@@ -34,38 +34,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch profile from DB with graceful fallback to session metadata
   const fetchAndSetUser = useCallback(async (sessionUser: any) => {
+    // Always fetch fresh user data from Supabase Auth server (not cached JWT)
+    let freshMetadata = sessionUser.user_metadata || {};
     try {
-      // First try to get user from the users table
-      const { data: profile, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', sessionUser.id)
-        .maybeSingle();
-
-      if (profile && !error) {
-        setUser(mapDbUserToUser(profile));
-        return;
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (freshUser?.user_metadata) {
+        freshMetadata = freshUser.user_metadata;
       }
-
-      // Log specific database errors for debugging
-      if (error) {
-        console.log('Database query error:', error.code, error.message);
-        
-        // Check if it's a table not found or column not found error
-        if (error.code === '42P01' || error.code === '42703') {
-          console.log('Database schema not ready, using session metadata');
-        }
-      }
-    } catch (error: any) {
-      console.log('Database not accessible:', error.message);
+    } catch (err) {
+      console.log('Could not fetch fresh user data, using session metadata');
     }
 
-    // Fallback: Create user from session metadata
-    const metadataRole = sessionUser.user_metadata?.role;
+    // Try to get display name from various metadata fields
+    const displayName = 
+      freshMetadata.full_name || 
+      freshMetadata.name || 
+      freshMetadata.display_name ||
+      sessionUser.email?.split('@')[0]?.replace(/[._]/g, ' ')?.replace(/\b\w/g, (c: string) => c.toUpperCase()) ||
+      'User';
+
+    // Determine role from metadata
+    const metadataRole = freshMetadata.role;
     const email = sessionUser.email || '';
     let role: UserRole = 'citizen';
 
-    // Role inference logic
     if (metadataRole && ['citizen', 'business_owner', 'health_worker', 'inspector', 'admin'].includes(metadataRole)) {
       role = metadataRole as UserRole;
     } else if (email === 'admin@barangay.gov' || email === 'admin@lgu.gov.ph') {
@@ -73,31 +65,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else if (email.includes('health') || email.startsWith('ana.')) {
       role = 'health_worker';
     } else if (email.includes('inspector') || email.includes('sanitation') || email.startsWith('pedro.')) {
-      role = 'inspector';  
+      role = 'inspector';
     } else if (email.includes('business') || email.startsWith('maria.')) {
       role = 'business_owner';
-    }
-
-    // Create a proper display name from metadata or email
-    let displayName = sessionUser.user_metadata?.full_name || 'User';
-    
-    if (!sessionUser.user_metadata?.full_name && email) {
-      const emailPrefix = email.split('@')[0];
-      if (emailPrefix) {
-        const nameMap: Record<string, string> = {
-          'admin': 'Administrator',
-          'health': 'Health Worker',
-          'inspector': 'Inspector',
-          'ana.reyes': 'Ana Reyes',
-          'pedro.garcia': 'Pedro Garcia',
-          'maria.santos': 'Maria Santos',
-          'juan.delacruz': 'Juan dela Cruz'
-        };
-        
-        displayName = nameMap[emailPrefix] || 
-          emailPrefix.replace(/[._]/g, ' ')
-                    .replace(/\b\w/g, (c: string) => c.toUpperCase());
-      }
     }
 
     setUser({
@@ -105,6 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       name: displayName,
       role,
+      avatar: freshMetadata.avatar_url,
+      phone: freshMetadata.phone,
     });
   }, []);
 
