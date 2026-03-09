@@ -75,14 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (metadataRole && ['citizen', 'business_owner', 'health_worker', 'inspector', 'admin'].includes(metadataRole)) {
       role = metadataRole as UserRole;
-    } else if (email === 'admin@barangay.gov' || email === 'admin@lgu.gov.ph') {
-      role = 'admin';
-    } else if (email.includes('health') || email.startsWith('ana.')) {
-      role = 'health_worker';
-    } else if (email.includes('inspector') || email.includes('sanitation') || email.startsWith('pedro.')) {
-      role = 'inspector';
-    } else if (email.includes('business') || email.startsWith('maria.')) {
-      role = 'business_owner';
     }
 
     setUser({

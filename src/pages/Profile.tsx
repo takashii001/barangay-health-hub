@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Phone, MapPin, Edit3, Save, X, Calendar, FileText, Heart, AlertTriangle, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit3, Save, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function Profile() {
