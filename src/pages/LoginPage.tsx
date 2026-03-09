@@ -53,33 +53,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (role: UserRole) => {
-    setIsLoading(true);
-    const demoEmails: Record<UserRole, string> = {
-      citizen: 'juan.delacruz@email.com',
-      business_owner: 'maria.santos@business.com',
-      health_worker: 'ana.reyes@lgu.gov.ph',
-      inspector: 'pedro.garcia@lgu.gov.ph',
-      admin: 'admin@lgu.gov.ph',
-    };
-    try {
-      await login(demoEmails[role], 'demo123');
-      toast({
-        title: 'Demo Login Successful',
-        description: `Logged in as ${ROLE_LABELS[role]}`,
-        className: 'bg-green-600 text-white border-green-700',
-      });
-      navigate(getRedirectPath(role));
-    } catch (error: any) {
-      toast({
-        title: 'Login failed',
-        description: error?.message || 'Could not log in.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex">
