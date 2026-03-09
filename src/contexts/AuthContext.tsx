@@ -20,9 +20,9 @@ function mapDbUserToUser(dbUser: any): User {
     id: dbUser.id,
     email: dbUser.email,
     name: dbUser.full_name || dbUser.email,
-    role: dbUser.role || 'citizen',
+    role: dbUser.user_type || 'citizen',
     avatar: dbUser.avatar_url,
-    phone: dbUser.phone,
+    phone: dbUser.contact_no,
     address: dbUser.address,
   };
 }
