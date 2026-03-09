@@ -39,21 +39,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (newSession?.user) {
         // Fetch user profile from users table
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('users')
           .select('*')
           .eq('id', newSession.user.id)
           .single();
 
-        if (profile) {
+        if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
-          // Fallback: use auth user data
+          // Check if user has role in metadata, otherwise default to citizen
+          const userRole = newSession.user.user_metadata?.role || 'citizen';
           setUser({
             id: newSession.user.id,
             email: newSession.user.email || '',
             name: newSession.user.user_metadata?.full_name || newSession.user.email || '',
-            role: 'citizen',
+            role: userRole as UserRole,
           });
         }
       } else {
@@ -66,20 +67,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
       setSession(existingSession);
       if (existingSession?.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('users')
           .select('*')
           .eq('id', existingSession.user.id)
           .single();
 
-        if (profile) {
+        if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
+          // Check if user has role in metadata, otherwise default to citizen
+          const userRole = existingSession.user.user_metadata?.role || 'citizen';
           setUser({
             id: existingSession.user.id,
             email: existingSession.user.email || '',
             name: existingSession.user.user_metadata?.full_name || existingSession.user.email || '',
-            role: 'citizen',
+            role: userRole as UserRole,
           });
         }
       }
@@ -117,9 +120,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    // Always clear local state regardless of API success
     setUser(null);
     setSession(null);
+    
+    // Force redirect to login page
+    window.location.href = '/login';
   }, []);
 
   return (
