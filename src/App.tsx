@@ -100,6 +100,7 @@ function AppRoutes() {
         <Route path="/establishments" element={<EstablishmentManagement />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<Profile />} />
 
         {/* Portal Routes (Citizen & Business Owner) */}
         <Route path="/portal" element={<ResidentPortal />} />

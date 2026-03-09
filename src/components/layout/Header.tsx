@@ -121,9 +121,11 @@ export function Header({ onMenuClick }: HeaderProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="w-4 h-4 mr-2" />
-              Profile
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="flex items-center w-full">
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings className="w-4 h-4 mr-2" />
