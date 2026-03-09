@@ -137,11 +137,6 @@ export default function Profile() {
     );
   }
 
-  const stats = [
-    { label: 'Total Requests', value: '12', icon: FileText, color: 'text-blue-600' },
-    { label: 'Health Records', value: '8', icon: Heart, color: 'text-green-600' },
-    { label: 'Active Issues', value: '2', icon: AlertTriangle, color: 'text-amber-600' },
-  ];
 
   return (
     <div className="animate-fade-in">
