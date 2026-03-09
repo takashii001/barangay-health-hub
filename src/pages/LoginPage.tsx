@@ -1,22 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, ROLE_LABELS, ROLE_COLORS } from '@/types/auth';
-import { cn } from '@/lib/utils';
+import { UserRole } from '@/types/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Eye, EyeOff, ArrowRight, Moon, Sun } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-const DEMO_ROLES: { role: UserRole; description: string }[] = [
-  { role: 'citizen', description: 'Submit requests & track status' },
-  { role: 'business_owner', description: 'Manage establishments & permits' },
-  { role: 'health_worker', description: 'Health services & immunization' },
-  { role: 'inspector', description: 'Inspections & compliance' },
-  { role: 'admin', description: 'Full system access' },
-];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -62,33 +53,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (role: UserRole) => {
-    setIsLoading(true);
-    const demoEmails: Record<UserRole, string> = {
-      citizen: 'juan.delacruz@email.com',
-      business_owner: 'maria.santos@business.com',
-      health_worker: 'ana.reyes@lgu.gov.ph',
-      inspector: 'pedro.garcia@lgu.gov.ph',
-      admin: 'admin@lgu.gov.ph',
-    };
-    try {
-      await login(demoEmails[role], 'demo123');
-      toast({
-        title: 'Demo Login Successful',
-        description: `Logged in as ${ROLE_LABELS[role]}`,
-        className: 'bg-green-600 text-white border-green-700',
-      });
-      navigate(getRedirectPath(role));
-    } catch (error: any) {
-      toast({
-        title: 'Login failed',
-        description: error?.message || 'Could not log in.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex">
@@ -215,36 +179,6 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    Quick Demo Login
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {DEMO_ROLES.map(({ role, description }) => (
-                  <Button
-                    key={role}
-                    variant="outline"
-                    size="sm"
-                    className="h-auto py-2 px-3 flex-col items-start text-left"
-                    onClick={() => handleQuickLogin(role)}
-                    disabled={isLoading}
-                  >
-                    <span className={cn('text-xs px-1.5 py-0.5 rounded', ROLE_COLORS[role])}>
-                      {ROLE_LABELS[role]}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground mt-1">
-                      {description}
-                    </span>
-                  </Button>
-                ))}
-              </div>
             </CardContent>
           </Card>
 
