@@ -1,44 +1,141 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ROLE_LABELS } from '@/types/auth';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Phone, MapPin, Edit3, Save, X, Calendar, FileText, Heart, AlertTriangle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit3, Save, X, Calendar, FileText, Heart, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function Profile() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
+    full_name: '',
+    email: '',
+    contact_no: '',
+    address: '',
   });
 
-  const handleSave = () => {
-    setIsEditing(false);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile information has been saved.',
-    });
+  // Fetch user profile from database
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          toast({
+            title: 'Error',
+            description: 'Could not load profile data',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        setUserProfile(data);
+        setFormData({
+          full_name: data?.full_name || '',
+          email: data?.email || '',
+          contact_no: data?.contact_no || '',
+          address: data?.address || '',
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: 'Error',
+          description: 'Could not load profile data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user?.id]);
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          full_name: formData.full_name,
+          email: formData.email,
+          contact_no: formData.contact_no,
+          address: formData.address,
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        toast({
+          title: 'Error',
+          description: 'Could not update profile',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Update local state
+      setUserProfile({
+        ...userProfile,
+        ...formData,
+      });
+
+      setIsEditing(false);
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile information has been saved.',
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not update profile',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setFormData({
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      address: user?.address || '',
+      full_name: userProfile?.full_name || '',
+      email: userProfile?.email || '',
+      contact_no: userProfile?.contact_no || '',
+      address: userProfile?.address || '',
     });
   };
 
   if (!user) return null;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const stats = [
     { label: 'Total Requests', value: '12', icon: FileText, color: 'text-blue-600' },
@@ -55,7 +152,7 @@ export default function Profile() {
             <p className="page-description">Manage your personal information and account settings</p>
           </div>
           <Badge variant="secondary" className="px-3 py-1">
-            {ROLE_LABELS[user.role]}
+            {ROLE_LABELS[userProfile?.user_type || user.role]}
           </Badge>
         </div>
       </div>
@@ -77,11 +174,15 @@ export default function Profile() {
               <div className="flex items-center gap-2">
                 {isEditing ? (
                   <>
-                    <Button onClick={handleSave} size="sm">
-                      <Save className="w-4 h-4 mr-2" />
+                    <Button onClick={handleSave} size="sm" disabled={isSaving}>
+                      {isSaving ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4 mr-2" />
+                      )}
                       Save
                     </Button>
-                    <Button onClick={handleCancel} variant="outline" size="sm">
+                    <Button onClick={handleCancel} variant="outline" size="sm" disabled={isSaving}>
                       <X className="w-4 h-4 mr-2" />
                       Cancel
                     </Button>
@@ -105,11 +206,11 @@ export default function Profile() {
                 {isEditing ? (
                   <Input
                     id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   />
                 ) : (
-                  <div className="text-sm font-medium py-2">{user.name}</div>
+                  <div className="text-sm font-medium py-2">{userProfile?.full_name || 'Not provided'}</div>
                 )}
               </div>
 
@@ -125,7 +226,7 @@ export default function Profile() {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 ) : (
-                  <div className="text-sm font-medium py-2">{user.email}</div>
+                  <div className="text-sm font-medium py-2">{userProfile?.email || 'Not provided'}</div>
                 )}
               </div>
 
@@ -137,12 +238,12 @@ export default function Profile() {
                 {isEditing ? (
                   <Input
                     type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    value={formData.contact_no}
+                    onChange={(e) => setFormData({ ...formData, contact_no: e.target.value })}
                     placeholder="Enter phone number"
                   />
                 ) : (
-                  <div className="text-sm font-medium py-2">{user.phone || 'Not provided'}</div>
+                  <div className="text-sm font-medium py-2">{userProfile?.contact_no || 'Not provided'}</div>
                 )}
               </div>
 
@@ -158,7 +259,7 @@ export default function Profile() {
                     placeholder="Enter address"
                   />
                 ) : (
-                  <div className="text-sm font-medium py-2">{user.address || 'Not provided'}</div>
+                  <div className="text-sm font-medium py-2">{userProfile?.address || 'Not provided'}</div>
                 )}
               </div>
             </div>
@@ -168,7 +269,7 @@ export default function Profile() {
             <div className="space-y-2">
               <Label>Account Role</Label>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{ROLE_LABELS[user.role]}</Badge>
+                <Badge variant="secondary">{ROLE_LABELS[userProfile?.user_type || user.role]}</Badge>
                 <span className="text-xs text-muted-foreground">Role cannot be changed</span>
               </div>
             </div>

@@ -21,11 +21,11 @@ export const userService = {
     return data as DbUser;
   },
 
-  async getByRole(role: DbUser['role']) {
+  async getByRole(userType: DbUser['user_type']) {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('role', role)
+      .eq('user_type', userType)
       .order('full_name', { ascending: true });
     if (error) throw error;
     return data as DbUser[];

@@ -9,9 +9,9 @@ export interface DbUser {
   id: string;
   email: string;
   full_name: string;
-  role: UserRole;
+  user_type: UserRole;
   avatar_url?: string | null;
-  phone?: string | null;
+  contact_no?: string | null;
   address?: string | null;
   created_at: string;
   updated_at: string;
@@ -111,7 +111,7 @@ export interface Database {
     Tables: {
       users: {
         Row: DbUser;
-        Insert: Partial<DbUser> & { email: string; full_name: string; role: UserRole };
+        Insert: Partial<DbUser> & { email: string; full_name: string; user_type: UserRole };
         Update: Partial<DbUser>;
       };
       establishments: {
