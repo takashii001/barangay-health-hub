@@ -44,52 +44,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch profile from DB without blocking the auth listener
   const fetchAndSetUser = useCallback((sessionUser: any) => {
-    // First, check if role is stored in user_metadata (from signup)
-    const metadataRole = sessionUser.user_metadata?.role;
-    if (metadataRole && ['citizen', 'business_owner', 'bhw', 'sanitation_inspector', 'nurse', 'admin'].includes(metadataRole)) {
-      setUser({
-        id: sessionUser.id,
-        email: sessionUser.email || '',
-        name: sessionUser.user_metadata?.full_name || 'User',
-        role: metadataRole as UserRole,
-      });
-      return;
-    }
-
-    // Try to fetch from users table, but handle gracefully if table doesn't exist
+    // Always try to fetch from users table first (source of truth)
     supabase
       .from('users')
       .select('*')
       .eq('id', sessionUser.id)
-      .single()
+      .maybeSingle()
       .then(({ data: profile, error }) => {
         if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
-          // Enhanced fallback: determine role from specific email patterns
+          // Fallback: use metadata or email-based inference
+          const metadataRole = sessionUser.user_metadata?.role;
           let role: UserRole = 'citizen';
           const email = sessionUser.email || '';
-          
-          // Specific email-to-role mapping
-          if (email === 'admin@barangay.gov') {
+
+          if (metadataRole && ['citizen', 'business_owner', 'bhw', 'sanitation_inspector', 'nurse', 'admin'].includes(metadataRole)) {
+            role = metadataRole as UserRole;
+          } else if (email === 'admin@barangay.gov') {
             role = 'admin';
           } else if (email.startsWith('bhw@')) {
             role = 'bhw';
-          } else if (email.startsWith('sanitation@') || email.includes('sanitation')) {
+          } else if (email.includes('sanitation')) {
             role = 'sanitation_inspector';
           } else if (email.startsWith('nurse@') || email.includes('@health.gov')) {
             role = 'nurse';
-          } else if (email.includes('@business.') || email.includes('business@')) {
+          } else if (email.includes('business')) {
             role = 'business_owner';
-          } else if (email.includes('@barangay.gov') || email.includes('@lgu.gov')) {
-            // Only admin-specific barangay emails should be admin
-            role = email === 'admin@barangay.gov' ? 'admin' : 'citizen';
           }
-          
+
+          // Try to build a readable name from metadata or email
+          const fallbackName = sessionUser.user_metadata?.full_name
+            || email.split('@')[0]?.replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+            || 'User';
+
           setUser({
             id: sessionUser.id,
-            email: sessionUser.email || '',
-            name: sessionUser.user_metadata?.full_name || 'User',
+            email,
+            name: fallbackName,
             role,
           });
         }
