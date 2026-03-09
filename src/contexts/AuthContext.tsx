@@ -39,21 +39,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (newSession?.user) {
         // Fetch user profile from users table
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('users')
           .select('*')
           .eq('id', newSession.user.id)
           .single();
 
-        if (profile) {
+        if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
-          // Fallback: use auth user data
+          // Check if user has role in metadata, otherwise default to citizen
+          const userRole = newSession.user.user_metadata?.role || 'citizen';
           setUser({
             id: newSession.user.id,
             email: newSession.user.email || '',
             name: newSession.user.user_metadata?.full_name || newSession.user.email || '',
-            role: 'citizen',
+            role: userRole as UserRole,
           });
         }
       } else {
