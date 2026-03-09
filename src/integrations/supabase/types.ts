@@ -14,16 +14,301 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          application_id: string
+          application_type: string
+          date_submitted: string
+          establishment_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string
+          application_type: string
+          date_submitted?: string
+          establishment_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          application_type?: string
+          date_submitted?: string
+          establishment_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["establishment_id"]
+          },
+          {
+            foreignKeyName: "applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      certificates: {
+        Row: {
+          application_id: string | null
+          certificate_id: string
+          certificate_no: string
+          expiry_date: string | null
+          issue_date: string
+          qr_code: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          certificate_id?: string
+          certificate_no: string
+          expiry_date?: string | null
+          issue_date?: string
+          qr_code?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          certificate_id?: string
+          certificate_no?: string
+          expiry_date?: string | null
+          issue_date?: string
+          qr_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["application_id"]
+          },
+        ]
+      }
+      establishments: {
+        Row: {
+          address: string
+          business_name: string
+          business_type: string
+          created_at: string
+          establishment_id: string
+          permit_status: string | null
+          user_id: string
+        }
+        Insert: {
+          address: string
+          business_name: string
+          business_type: string
+          created_at?: string
+          establishment_id?: string
+          permit_status?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string
+          business_name?: string
+          business_type?: string
+          created_at?: string
+          establishment_id?: string
+          permit_status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "establishments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      inspections: {
+        Row: {
+          application_id: string | null
+          compliance_status: string | null
+          findings: string | null
+          inspection_date: string
+          inspection_id: string
+          inspector_id: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          compliance_status?: string | null
+          findings?: string | null
+          inspection_date?: string
+          inspection_id?: string
+          inspector_id?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          compliance_status?: string | null
+          findings?: string | null
+          inspection_date?: string
+          inspection_id?: string
+          inspector_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["application_id"]
+          },
+          {
+            foreignKeyName: "inspections_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "inspectors"
+            referencedColumns: ["inspector_id"]
+          },
+        ]
+      }
+      inspectors: {
+        Row: {
+          department: string | null
+          inspector_id: string
+          name: string
+          position: string | null
+          status: string
+        }
+        Insert: {
+          department?: string | null
+          inspector_id?: string
+          name: string
+          position?: string | null
+          status?: string
+        }
+        Update: {
+          department?: string | null
+          inspector_id?: string
+          name?: string
+          position?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      lab_results: {
+        Row: {
+          application_id: string | null
+          date_uploaded: string
+          lab_id: string
+          result: string
+          test_type: string
+        }
+        Insert: {
+          application_id?: string | null
+          date_uploaded?: string
+          lab_id?: string
+          result: string
+          test_type: string
+        }
+        Update: {
+          application_id?: string | null
+          date_uploaded?: string
+          lab_id?: string
+          result?: string
+          test_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_results_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["application_id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          application_id: string | null
+          created_at: string
+          payment_id: string
+          payment_method: string | null
+          receipt_no: string | null
+        }
+        Insert: {
+          amount: number
+          application_id?: string | null
+          created_at?: string
+          payment_id?: string
+          payment_method?: string | null
+          receipt_no?: string | null
+        }
+        Update: {
+          amount?: number
+          application_id?: string | null
+          created_at?: string
+          payment_id?: string
+          payment_method?: string | null
+          receipt_no?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["application_id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          account_status: string
+          address: string | null
+          contact_no: string | null
+          created_at: string
+          email: string
+          full_name: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type_enum"]
+        }
+        Insert: {
+          account_status?: string
+          address?: string | null
+          contact_no?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type_enum"]
+        }
+        Update: {
+          account_status?: string
+          address?: string | null
+          contact_no?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type_enum"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      user_type_enum:
+        | "citizen"
+        | "business_owner"
+        | "health_worker"
+        | "inspector"
+        | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +435,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_type_enum: [
+        "citizen",
+        "business_owner",
+        "health_worker",
+        "inspector",
+        "admin",
+      ],
+    },
   },
 } as const
