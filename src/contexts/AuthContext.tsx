@@ -43,49 +43,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch profile from DB without blocking the auth listener
-  const fetchAndSetUser = useCallback((sessionUser: any) => {
-    // Always try to fetch from users table first (source of truth)
-    supabase
-      .from('users')
-      .select('*')
-      .eq('id', sessionUser.id)
-      .maybeSingle()
-      .then(({ data: profile, error }) => {
-        if (profile && !error) {
-          setUser(mapDbUserToUser(profile));
-        } else {
-          // Fallback: use metadata or email-based inference
-          const metadataRole = sessionUser.user_metadata?.role;
-          let role: UserRole = 'citizen';
-          const email = sessionUser.email || '';
+  const fetchAndSetUser = useCallback(async (sessionUser: any) => {
+    // Try to fetch from users table first, but handle gracefully if it doesn't exist
+    try {
+      const { data: profile, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', sessionUser.id)
+        .maybeSingle();
 
-          if (metadataRole && ['citizen', 'business_owner', 'bhw', 'sanitation_inspector', 'nurse', 'admin'].includes(metadataRole)) {
-            role = metadataRole as UserRole;
-          } else if (email === 'admin@barangay.gov') {
-            role = 'admin';
-          } else if (email.startsWith('bhw@')) {
-            role = 'bhw';
-          } else if (email.includes('sanitation')) {
-            role = 'sanitation_inspector';
-          } else if (email.startsWith('nurse@') || email.includes('@health.gov')) {
-            role = 'nurse';
-          } else if (email.includes('business')) {
-            role = 'business_owner';
-          }
+      if (profile && !error) {
+        setUser(mapDbUserToUser(profile));
+        return;
+      }
+    } catch (error) {
+      // Table doesn't exist or other DB error - continue with fallback
+      console.log('Users table not accessible, using fallback');
+    }
 
-          // Try to build a readable name from metadata or email
-          const fallbackName = sessionUser.user_metadata?.full_name
-            || email.split('@')[0]?.replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
-            || 'User';
+    // Fallback: Create user from metadata and email patterns
+    const metadataRole = sessionUser.user_metadata?.role;
+    const email = sessionUser.email || '';
+    let role: UserRole = 'citizen';
 
-          setUser({
-            id: sessionUser.id,
-            email,
-            name: fallbackName,
-            role,
-          });
-        }
-      });
+    // Role inference logic
+    if (metadataRole && ['citizen', 'business_owner', 'bhw', 'sanitation_inspector', 'nurse', 'admin'].includes(metadataRole)) {
+      role = metadataRole as UserRole;
+    } else if (email === 'admin@barangay.gov') {
+      role = 'admin';
+    } else if (email.startsWith('bhw@')) {
+      role = 'bhw';
+    } else if (email.includes('sanitation')) {
+      role = 'sanitation_inspector';  
+    } else if (email.startsWith('nurse@') || email.includes('@health.gov')) {
+      role = 'nurse';
+    } else if (email.includes('business')) {
+      role = 'business_owner';
+    }
+
+    // Create a proper display name from email
+    let displayName = sessionUser.user_metadata?.full_name || 'User';
+    
+    if (!sessionUser.user_metadata?.full_name && email) {
+      // Extract name from email prefix and create proper capitalization
+      const emailPrefix = email.split('@')[0];
+      if (emailPrefix) {
+        // Convert email prefixes like "admin", "bhw", "resident" to proper names
+        const nameMap: Record<string, string> = {
+          'admin': 'Administrator',
+          'bhw': 'Barangay Health Worker',
+          'resident': 'Resident User',
+          'sanitation': 'Sanitation Inspector',
+          'nurse': 'Nurse Practitioner'
+        };
+        
+        displayName = nameMap[emailPrefix] || 
+          emailPrefix.replace(/[._]/g, ' ')
+                    .replace(/\b\w/g, (c: string) => c.toUpperCase());
+      }
+    }
+
+    setUser({
+      id: sessionUser.id,
+      email,
+      name: displayName,
+      role,
+    });
   }, []);
 
   useEffect(() => {
