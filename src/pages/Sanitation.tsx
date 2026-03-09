@@ -125,8 +125,8 @@ export default function Sanitation() {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
 
   const isReadOnly = user?.role === 'admin';
-  const canEdit = user?.role === 'sanitation_inspector' || user?.role === 'admin';
-  const canInspect = user?.role === 'sanitation_inspector' || user?.role === 'admin';
+  const canEdit = user?.role === 'inspector' || user?.role === 'admin';
+  const canInspect = user?.role === 'inspector' || user?.role === 'admin';
 
   const handleQRScan = (result: ScannedResult) => {
     setShowScanner(false);
