@@ -27,25 +27,15 @@ function mapDbUserToUser(dbUser: any): User {
   };
 }
 
-function buildUserFromSession(sessionUser: any): User {
-  const userRole = sessionUser.user_metadata?.role || 'citizen';
-  return {
-    id: sessionUser.id,
-    email: sessionUser.email || '',
-    name: sessionUser.user_metadata?.full_name || sessionUser.email || '',
-    role: userRole as UserRole,
-  };
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch profile from DB without blocking the auth listener
+  // Fetch profile from DB with graceful fallback to session metadata
   const fetchAndSetUser = useCallback(async (sessionUser: any) => {
-    // Try to fetch from users table first, but handle gracefully if it doesn't exist
     try {
+      // First try to get user from the users table
       const { data: profile, error } = await supabase
         .from('users')
         .select('*')
@@ -56,45 +46,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(mapDbUserToUser(profile));
         return;
       }
-    } catch (error) {
-      // Table doesn't exist or other DB error - continue with fallback
-      console.log('Users table not accessible, using fallback');
+
+      // Log specific database errors for debugging
+      if (error) {
+        console.log('Database query error:', error.code, error.message);
+        
+        // Check if it's a table not found or column not found error
+        if (error.code === '42P01' || error.code === '42703') {
+          console.log('Database schema not ready, using session metadata');
+        }
+      }
+    } catch (error: any) {
+      console.log('Database not accessible:', error.message);
     }
 
-    // Fallback: Create user from metadata and email patterns
+    // Fallback: Create user from session metadata
     const metadataRole = sessionUser.user_metadata?.role;
     const email = sessionUser.email || '';
     let role: UserRole = 'citizen';
 
     // Role inference logic
-    if (metadataRole && ['citizen', 'business_owner', 'bhw', 'sanitation_inspector', 'nurse', 'admin'].includes(metadataRole)) {
+    if (metadataRole && ['citizen', 'business_owner', 'health_worker', 'inspector', 'admin'].includes(metadataRole)) {
       role = metadataRole as UserRole;
-    } else if (email === 'admin@barangay.gov') {
+    } else if (email === 'admin@barangay.gov' || email === 'admin@lgu.gov.ph') {
       role = 'admin';
-    } else if (email.startsWith('bhw@')) {
-      role = 'bhw';
-    } else if (email.includes('sanitation')) {
-      role = 'sanitation_inspector';  
-    } else if (email.startsWith('nurse@') || email.includes('@health.gov')) {
-      role = 'nurse';
-    } else if (email.includes('business')) {
+    } else if (email.includes('health') || email.startsWith('ana.')) {
+      role = 'health_worker';
+    } else if (email.includes('inspector') || email.includes('sanitation') || email.startsWith('pedro.')) {
+      role = 'inspector';  
+    } else if (email.includes('business') || email.startsWith('maria.')) {
       role = 'business_owner';
     }
 
-    // Create a proper display name from email
+    // Create a proper display name from metadata or email
     let displayName = sessionUser.user_metadata?.full_name || 'User';
     
     if (!sessionUser.user_metadata?.full_name && email) {
-      // Extract name from email prefix and create proper capitalization
       const emailPrefix = email.split('@')[0];
       if (emailPrefix) {
-        // Convert email prefixes like "admin", "bhw", "resident" to proper names
         const nameMap: Record<string, string> = {
           'admin': 'Administrator',
-          'bhw': 'Barangay Health Worker',
-          'resident': 'Resident User',
-          'sanitation': 'Sanitation Inspector',
-          'nurse': 'Nurse Practitioner'
+          'health': 'Health Worker',
+          'inspector': 'Inspector',
+          'ana.reyes': 'Ana Reyes',
+          'pedro.garcia': 'Pedro Garcia',
+          'maria.santos': 'Maria Santos',
+          'juan.delacruz': 'Juan dela Cruz'
         };
         
         displayName = nameMap[emailPrefix] || 
@@ -114,21 +111,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // Step 1: Get the initial session synchronously from storage
+    // Step 1: Get the initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!mounted) return;
       setSession(initialSession);
       if (initialSession?.user) {
         fetchAndSetUser(initialSession.user);
       }
-      // Always clear loading after initial session check
       setIsLoading(false);
     }).catch(() => {
       if (mounted) setIsLoading(false);
     });
 
-    // Step 2: Listen for subsequent auth changes (sign in, sign out, token refresh)
-    // CRITICAL: Do NOT use async/await inside this callback — it causes deadlocks
+    // Step 2: Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!mounted) return;
       setSession(newSession);
@@ -161,13 +156,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     if (error) throw error;
 
+    // Try to insert into users table if it exists
     if (data.user) {
-      await supabase.from('users').upsert({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-        role,
-      });
+      try {
+        await supabase.from('users').upsert({
+          id: data.user.id,
+          email,
+          full_name: fullName,
+          role,
+        });
+      } catch (error) {
+        console.log('Could not insert into users table:', error);
+        // Don't throw error - user can still work with session metadata
+      }
     }
   }, []);
 

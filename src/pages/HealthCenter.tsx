@@ -160,7 +160,7 @@ export default function HealthCenter() {
   const [showScanner, setShowScanner] = useState(false);
 
   const isReadOnly = user?.role === 'admin';
-  const canEdit = user?.role === 'bhw' || user?.role === 'nurse' || user?.role === 'admin';
+  const canEdit = user?.role === 'health_worker' || user?.role === 'admin';
 
   const handleAddPatient = () => {
     toast({

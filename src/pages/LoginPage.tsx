@@ -13,9 +13,8 @@ import { toast } from '@/hooks/use-toast';
 const DEMO_ROLES: { role: UserRole; description: string }[] = [
   { role: 'citizen', description: 'Submit requests & track status' },
   { role: 'business_owner', description: 'Manage establishments & permits' },
-  { role: 'bhw', description: 'Health services & immunization' },
-  { role: 'sanitation_inspector', description: 'Inspections & compliance' },
-  { role: 'nurse', description: 'Vaccination & nutrition' },
+  { role: 'health_worker', description: 'Health services & immunization' },
+  { role: 'inspector', description: 'Inspections & compliance' },
   { role: 'admin', description: 'Full system access' },
 ];
 
@@ -68,9 +67,8 @@ export default function LoginPage() {
     const demoEmails: Record<UserRole, string> = {
       citizen: 'juan.delacruz@email.com',
       business_owner: 'maria.santos@business.com',
-      bhw: 'ana.reyes@lgu.gov.ph',
-      sanitation_inspector: 'pedro.garcia@lgu.gov.ph',
-      nurse: 'rosa.cruz@lgu.gov.ph',
+      health_worker: 'ana.reyes@lgu.gov.ph',
+      inspector: 'pedro.garcia@lgu.gov.ph',
       admin: 'admin@lgu.gov.ph',
     };
     try {
