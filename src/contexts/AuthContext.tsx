@@ -32,9 +32,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch profile from DB with graceful fallback to session metadata
+  // Fetch user from database, fallback to session metadata
   const fetchAndSetUser = useCallback(async (sessionUser: any) => {
-    // Always fetch fresh user data from Supabase Auth server (not cached JWT)
+    try {
+      // First try to get user from database
+      const { data: dbUser, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', sessionUser.id)
+        .single();
+
+      if (!error && dbUser) {
+        // Use database user data
+        setUser(mapDbUserToUser(dbUser));
+        return;
+      }
+    } catch (error) {
+      console.log('Could not fetch user from database, using session metadata');
+    }
+
+    // Fallback to session metadata
     let freshMetadata = sessionUser.user_metadata || {};
     try {
       const { data: { user: freshUser } } = await supabase.auth.getUser();
@@ -45,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Could not fetch fresh user data, using session metadata');
     }
 
-    // Try to get display name from various metadata fields
     const displayName = 
       freshMetadata.full_name || 
       freshMetadata.name || 
@@ -53,8 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionUser.email?.split('@')[0]?.replace(/[._]/g, ' ')?.replace(/\b\w/g, (c: string) => c.toUpperCase()) ||
       'User';
 
-    // Determine role from metadata
-    const metadataRole = freshMetadata.role;
+    const metadataRole = freshMetadata.user_type || freshMetadata.role;
     const email = sessionUser.email || '';
     let role: UserRole = 'citizen';
 
@@ -76,7 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: displayName,
       role,
       avatar: freshMetadata.avatar_url,
-      phone: freshMetadata.phone,
+      phone: freshMetadata.contact_no || freshMetadata.phone,
+      address: freshMetadata.address,
     });
   }, []);
 
