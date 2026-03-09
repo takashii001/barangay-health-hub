@@ -111,7 +111,7 @@ export interface Database {
     Tables: {
       users: {
         Row: DbUser;
-        Insert: Partial<DbUser> & { email: string; full_name: string; role: UserRole };
+        Insert: Partial<DbUser> & { email: string; full_name: string; user_type: UserRole };
         Update: Partial<DbUser>;
       };
       establishments: {

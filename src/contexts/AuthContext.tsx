@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
-        data: { full_name: fullName, role },
+        data: { full_name: fullName, user_type: role },
         emailRedirectTo: window.location.origin,
       },
     });
@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: data.user.id,
           email,
           full_name: fullName,
-          role,
+          user_type: role,
         });
       } catch (error) {
         console.log('Could not insert into users table:', error);
