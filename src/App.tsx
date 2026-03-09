@@ -14,6 +14,7 @@ import Wastewater from "./pages/Wastewater";
 import Surveillance from "./pages/Surveillance";
 import UserManagement from "./pages/UserManagement";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import ResidentPortal from "./pages/ResidentPortal";
 import ResidentHealth from "./pages/ResidentHealth";
 import ResidentPermits from "./pages/ResidentPermits";
@@ -99,6 +100,7 @@ function AppRoutes() {
         <Route path="/establishments" element={<EstablishmentManagement />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<Profile />} />
 
         {/* Portal Routes (Citizen & Business Owner) */}
         <Route path="/portal" element={<ResidentPortal />} />
