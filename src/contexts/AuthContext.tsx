@@ -44,6 +44,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch profile from DB without blocking the auth listener
   const fetchAndSetUser = useCallback((sessionUser: any) => {
+    // For admin emails, set admin role directly without DB dependency
+    if (sessionUser.email === 'admin@barangay.gov') {
+      setUser({
+        id: sessionUser.id,
+        email: sessionUser.email || '',
+        name: sessionUser.user_metadata?.full_name || sessionUser.email || 'Admin',
+        role: 'admin' as UserRole,
+      });
+      return;
+    }
+
+    // Try to fetch from users table, but handle gracefully if table doesn't exist
     supabase
       .from('users')
       .select('*')
@@ -53,7 +65,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
-          setUser(buildUserFromSession(sessionUser));
+          // Fallback: determine role from email pattern or default to citizen
+          let role: UserRole = 'citizen';
+          if (sessionUser.email?.includes('@barangay.gov')) {
+            role = 'admin';
+          } else if (sessionUser.email?.includes('@health.gov')) {
+            role = 'nurse';
+          }
+          
+          setUser({
+            id: sessionUser.id,
+            email: sessionUser.email || '',
+            name: sessionUser.user_metadata?.full_name || sessionUser.email || '',
+            role,
+          });
         }
       });
   }, []);
