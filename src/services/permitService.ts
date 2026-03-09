@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { Certificate } from '@/types/database';
 
 export const permitService = {
