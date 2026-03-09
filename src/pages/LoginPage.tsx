@@ -1,22 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, ROLE_LABELS, ROLE_COLORS } from '@/types/auth';
-import { cn } from '@/lib/utils';
+import { UserRole } from '@/types/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Eye, EyeOff, ArrowRight, Moon, Sun } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-const DEMO_ROLES: { role: UserRole; description: string }[] = [
-  { role: 'citizen', description: 'Submit requests & track status' },
-  { role: 'business_owner', description: 'Manage establishments & permits' },
-  { role: 'health_worker', description: 'Health services & immunization' },
-  { role: 'inspector', description: 'Inspections & compliance' },
-  { role: 'admin', description: 'Full system access' },
-];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
