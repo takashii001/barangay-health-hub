@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Phone, MapPin, Edit3, Save, X, Calendar, FileText, Heart, AlertTriangle, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit3, Save, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 export default function Profile() {
@@ -137,11 +137,6 @@ export default function Profile() {
     );
   }
 
-  const stats = [
-    { label: 'Total Requests', value: '12', icon: FileText, color: 'text-blue-600' },
-    { label: 'Health Records', value: '8', icon: Heart, color: 'text-green-600' },
-    { label: 'Active Issues', value: '2', icon: AlertTriangle, color: 'text-amber-600' },
-  ];
 
   return (
     <div className="animate-fade-in">
@@ -276,34 +271,6 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Account Statistics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Account Statistics
-            </CardTitle>
-            <CardDescription>Overview of your activity and records</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              {stats.map((stat) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={stat.label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <div className="flex-shrink-0">
-                      <Icon className={`w-5 h-5 ${stat.color}`} />
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold">{stat.value}</div>
-                      <div className="text-sm text-muted-foreground">{stat.label}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
