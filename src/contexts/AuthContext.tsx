@@ -89,10 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Convert email prefixes like "admin", "bhw", "resident" to proper names
         const nameMap: Record<string, string> = {
           'admin': 'Administrator',
-          'bhw': 'Barangay Health Worker',
-          'resident': 'Resident User',
-          'sanitation': 'Sanitation Inspector',
-          'nurse': 'Nurse Practitioner'
+          'health': 'Health Worker',
+          'inspector': 'Inspector',
+          'sanitation': 'Inspector',
+          'business': 'Business Owner'
         };
         
         displayName = nameMap[emailPrefix] || 

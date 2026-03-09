@@ -163,7 +163,7 @@ const BOTTOM_NAV_ITEMS: NavItem[] = [
     label: 'Settings',
     icon: Settings,
     path: '/settings',
-    roles: ['bhw', 'sanitation_inspector', 'nurse', 'admin'],
+    roles: ['health_worker', 'inspector', 'admin'],
   },
 ];
 
