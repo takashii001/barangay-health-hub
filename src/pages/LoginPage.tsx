@@ -13,9 +13,8 @@ import { toast } from '@/hooks/use-toast';
 const DEMO_ROLES: { role: UserRole; description: string }[] = [
   { role: 'citizen', description: 'Submit requests & track status' },
   { role: 'business_owner', description: 'Manage establishments & permits' },
-  { role: 'bhw', description: 'Health services & immunization' },
-  { role: 'sanitation_inspector', description: 'Inspections & compliance' },
-  { role: 'nurse', description: 'Vaccination & nutrition' },
+  { role: 'health_worker', description: 'Health services & immunization' },
+  { role: 'inspector', description: 'Inspections & compliance' },
   { role: 'admin', description: 'Full system access' },
 ];
 
