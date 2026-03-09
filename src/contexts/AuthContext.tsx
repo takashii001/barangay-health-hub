@@ -44,13 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch profile from DB without blocking the auth listener
   const fetchAndSetUser = useCallback((sessionUser: any) => {
-    // For admin emails, set admin role directly without DB dependency
-    if (sessionUser.email === 'admin@barangay.gov') {
+    // First, check if role is stored in user_metadata (from signup)
+    const metadataRole = sessionUser.user_metadata?.role;
+    if (metadataRole && ['citizen', 'business_owner', 'bhw', 'sanitation_inspector', 'nurse', 'admin'].includes(metadataRole)) {
       setUser({
         id: sessionUser.id,
         email: sessionUser.email || '',
-        name: sessionUser.user_metadata?.full_name || sessionUser.email || 'Admin',
-        role: 'admin' as UserRole,
+        name: sessionUser.user_metadata?.full_name || sessionUser.email || '',
+        role: metadataRole as UserRole,
       });
       return;
     }
@@ -65,12 +66,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
-          // Fallback: determine role from email pattern or default to citizen
+          // Enhanced fallback: determine role from specific email patterns
           let role: UserRole = 'citizen';
-          if (sessionUser.email?.includes('@barangay.gov')) {
+          const email = sessionUser.email || '';
+          
+          // Specific email-to-role mapping
+          if (email === 'admin@barangay.gov') {
             role = 'admin';
-          } else if (sessionUser.email?.includes('@health.gov')) {
+          } else if (email.startsWith('bhw@')) {
+            role = 'bhw';
+          } else if (email.startsWith('sanitation@') || email.includes('sanitation')) {
+            role = 'sanitation_inspector';
+          } else if (email.startsWith('nurse@') || email.includes('@health.gov')) {
             role = 'nurse';
+          } else if (email.includes('@business.') || email.includes('business@')) {
+            role = 'business_owner';
+          } else if (email.includes('@barangay.gov') || email.includes('@lgu.gov')) {
+            // Only admin-specific barangay emails should be admin
+            role = email === 'admin@barangay.gov' ? 'admin' : 'citizen';
           }
           
           setUser({
