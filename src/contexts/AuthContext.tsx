@@ -67,20 +67,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
       setSession(existingSession);
       if (existingSession?.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('users')
           .select('*')
           .eq('id', existingSession.user.id)
           .single();
 
-        if (profile) {
+        if (profile && !error) {
           setUser(mapDbUserToUser(profile));
         } else {
+          // Check if user has role in metadata, otherwise default to citizen
+          const userRole = existingSession.user.user_metadata?.role || 'citizen';
           setUser({
             id: existingSession.user.id,
             email: existingSession.user.email || '',
             name: existingSession.user.user_metadata?.full_name || existingSession.user.email || '',
-            role: 'citizen',
+            role: userRole as UserRole,
           });
         }
       }
