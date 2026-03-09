@@ -1,9 +1,8 @@
 export type UserRole =
   | 'citizen'
   | 'business_owner'
-  | 'bhw'
-  | 'sanitation_inspector'
-  | 'nurse'
+  | 'health_worker'
+  | 'inspector'
   | 'admin';
 
 export interface DbUser {
