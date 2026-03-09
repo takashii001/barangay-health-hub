@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (sessionUser.email?.includes('@barangay.gov')) {
             role = 'admin';
           } else if (sessionUser.email?.includes('@health.gov')) {
-            role = 'health_worker';
+            role = 'nurse';
           }
           
           setUser({
