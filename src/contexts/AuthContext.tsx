@@ -67,16 +67,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let role: UserRole = 'citizen';
 
     // Role inference logic
-    if (metadataRole && ['citizen', 'business_owner', 'bhw', 'sanitation_inspector', 'nurse', 'admin'].includes(metadataRole)) {
+    if (metadataRole && ['citizen', 'business_owner', 'health_worker', 'inspector', 'admin'].includes(metadataRole)) {
       role = metadataRole as UserRole;
     } else if (email === 'admin@barangay.gov') {
       role = 'admin';
-    } else if (email.startsWith('bhw@')) {
-      role = 'bhw';
-    } else if (email.includes('sanitation')) {
-      role = 'sanitation_inspector';  
-    } else if (email.startsWith('nurse@') || email.includes('@health.gov')) {
-      role = 'nurse';
+    } else if (email.startsWith('health@') || email.includes('health')) {
+      role = 'health_worker';
+    } else if (email.includes('inspector') || email.includes('sanitation')) {
+      role = 'inspector';  
     } else if (email.includes('business')) {
       role = 'business_owner';
     }
